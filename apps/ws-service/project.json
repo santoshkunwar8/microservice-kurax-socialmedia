@@ -1,0 +1,30 @@
+{
+  "name": "ws-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ws-service/src",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx watch --tsconfig apps/ws-service/tsconfig.json apps/ws-service/src/index.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/ws-service/tsconfig.json",
+        "cwd": "{workspaceRoot}"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'Linting ws-service'"
+      }
+    }
+  },
+  "tags": ["type:app", "scope:ws"]
+}

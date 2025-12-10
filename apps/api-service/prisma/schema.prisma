@@ -1,0 +1,188 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============= User Model =============
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  username     String    @unique
+  passwordHash String    @map("password_hash")
+  displayName  String?   @map("display_name")
+  avatarUrl    String?   @map("avatar_url")
+  isOnline     Boolean   @default(false) @map("is_online")
+  lastSeenAt   DateTime? @map("last_seen_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  createdRooms    Room[]           @relation("CreatedRooms")
+  roomMemberships RoomMember[]
+  messages        Message[]
+  refreshTokens   RefreshToken[]
+  fileMetadata    FileMetadata[]
+
+  @@index([email])
+  @@index([username])
+  @@index([isOnline])
+  @@map("users")
+}
+
+// ============= Refresh Token Model =============
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ============= Room Model =============
+model Room {
+  id          String   @id @default(uuid())
+  name        String?
+  description String?
+  type        RoomType @default(GROUP)
+  avatarUrl   String?  @map("avatar_url")
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  createdBy User         @relation("CreatedRooms", fields: [createdById], references: [id])
+  members   RoomMember[]
+  messages  Message[]
+
+  @@index([type])
+  @@index([createdById])
+  @@map("rooms")
+}
+
+enum RoomType {
+  DIRECT
+  GROUP
+  CHANNEL
+}
+
+// ============= Room Member Model =============
+model RoomMember {
+  id       String   @id @default(uuid())
+  userId   String   @map("user_id")
+  roomId   String   @map("room_id")
+  role     RoomRole @default(MEMBER)
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
+  @@index([userId])
+  @@index([roomId])
+  @@map("room_members")
+}
+
+enum RoomRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// ============= Message Model =============
+model Message {
+  id        String        @id @default(uuid())
+  content   String
+  type      MessageType   @default(TEXT)
+  status    MessageStatus @default(SENT)
+  roomId    String        @map("room_id")
+  senderId  String        @map("sender_id")
+  replyToId String?       @map("reply_to_id")
+  editedAt  DateTime?     @map("edited_at")
+  deletedAt DateTime?     @map("deleted_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  room        Room                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender      User                 @relation(fields: [senderId], references: [id])
+  replyTo     Message?             @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies     Message[]            @relation("MessageReplies")
+  attachments MessageAttachment[]
+
+  @@index([roomId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([roomId, createdAt])
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// ============= Message Attachment Model =============
+model MessageAttachment {
+  id           String   @id @default(uuid())
+  messageId    String   @map("message_id")
+  fileName     String   @map("file_name")
+  fileSize     Int      @map("file_size")
+  mimeType     String   @map("mime_type")
+  url          String
+  thumbnailUrl String?  @map("thumbnail_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("message_attachments")
+}
+
+// ============= File Metadata Model =============
+model FileMetadata {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  fileName     String   @map("file_name")
+  originalName String   @map("original_name")
+  fileSize     Int      @map("file_size")
+  mimeType     String   @map("mime_type")
+  storagePath  String   @map("storage_path")
+  url          String
+  thumbnailUrl String?  @map("thumbnail_url")
+  purpose      String   @default("message") // avatar, message, room
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([storagePath])
+  @@map("file_metadata")
+}

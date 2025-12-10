@@ -1,0 +1,62 @@
+{
+  "name": "@kuraxx/source",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time chat application backend with NX Monorepo",
+  "scripts": {
+    "api:dev": "nx serve api-service",
+    "api:build": "nx build api-service",
+    "ws:dev": "nx serve ws-service",
+    "ws:build": "nx build ws-service",
+    "web:dev": "nx run @kuraxx/web:dev",
+    "web:build": "nx run @kuraxx/web:build",
+    "dev": "nx run-many --target=serve --all --parallel",
+    "build": "nx run-many --target=build --all",
+    "lint": "nx run-many --target=lint --all",
+    "test": "nx run-many --target=test --all",
+    "prisma:generate": "prisma generate --schema=apps/api-service/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema=apps/api-service/prisma/schema.prisma",
+    "prisma:push": "prisma db push --schema=apps/api-service/prisma/schema.prisma",
+    "prisma:studio": "prisma studio --schema=apps/api-service/prisma/schema.prisma"
+  },
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.7",
+    "@types/ws": "^8.5.10",
+    "nx": "^17.2.0",
+    "prisma": "^5.7.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "@ts-rest/core": "^3.30.5",
+    "@ts-rest/express": "^3.30.5",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase-admin": "^12.0.0",
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1",
+    "ws": "^8.14.2",
+    "zod": "^3.22.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

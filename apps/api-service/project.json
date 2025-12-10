@@ -1,0 +1,30 @@
+{
+  "name": "api-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api-service/src",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx watch --tsconfig apps/api-service/tsconfig.json apps/api-service/src/index.ts",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/api-service/tsconfig.json",
+        "cwd": "{workspaceRoot}"
+      },
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'Linting api-service'"
+      }
+    }
+  },
+  "tags": ["type:app", "scope:api"]
+}

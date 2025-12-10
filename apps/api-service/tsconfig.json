@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@kuraxx/shared/*": ["../../libs/shared/*"],
+      "@kuraxx/contracts": ["../../libs/shared/contracts/src/index.ts"],
+      "@kuraxx/types": ["../../libs/shared/types/src/index.ts"],
+      "@kuraxx/constants": ["../../libs/shared/constants/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
