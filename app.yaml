@@ -1,0 +1,84 @@
+name: kuraxx-chat
+region: nyc
+services:
+- name: api-service
+  dockerfile_path: apps/api-service/Dockerfile
+  source_dir: /
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: santoshkunwar8/microservice-kurax-socialmedia
+  http_port: 3001
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${DATABASE_URL}
+  - key: REDIS_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${REDIS_URL}
+  - key: JWT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: ${JWT_SECRET}
+  - key: FIREBASE_PROJECT_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${FIREBASE_PROJECT_ID}
+  - key: FIREBASE_PRIVATE_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: ${FIREBASE_PRIVATE_KEY}
+  - key: FIREBASE_CLIENT_EMAIL
+    scope: RUN_AND_BUILD_TIME
+    value: ${FIREBASE_CLIENT_EMAIL}
+  - key: FIREBASE_STORAGE_BUCKET
+    scope: RUN_AND_BUILD_TIME
+    value: ${FIREBASE_STORAGE_BUCKET}
+
+- name: ws-service
+  dockerfile_path: apps/ws-service/Dockerfile
+  source_dir: /
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: santoshkunwar8/microservice-kurax-socialmedia
+  http_port: 3002
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: REDIS_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${REDIS_URL}
+  - key: JWT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: ${JWT_SECRET}
+
+- name: web
+  dockerfile_path: apps/web/Dockerfile
+  source_dir: /
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: santoshkunwar8/microservice-kurax-socialmedia
+  http_port: 80
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: VITE_API_URL
+    scope: BUILD_TIME
+    value: ${APP_URL}/api
+  - key: VITE_WS_URL
+    scope: BUILD_TIME
+    value: ${APP_URL}
+
+databases:
+- engine: PG
+  name: kuraxx-db
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "16"
+
+- engine: REDIS
+  name: kuraxx-redis
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "7"
