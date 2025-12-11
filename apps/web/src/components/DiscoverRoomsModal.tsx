@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
 import { useChatStore } from '../store';
-import type { Room } from '@kuraxx/types';
+import { Room, RoomType } from '@kuraxx/types';
 
 interface DiscoverRoomsModalProps {
   isOpen: boolean;
@@ -98,7 +98,7 @@ export default function DiscoverRoomsModal({ isOpen, onClose }: DiscoverRoomsMod
                 >
                   <div className="flex items-center space-x-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm
-                      ${room.type === 'channel' ? 'bg-gradient-to-br from-purple-500 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-cyan-600'}`}
+                      ${room.type === RoomType.CHANNEL ? 'bg-gradient-to-br from-purple-500 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-cyan-600'}`}
                     >
                       {room.name?.charAt(0).toUpperCase() || '#'}
                     </div>
@@ -108,7 +108,7 @@ export default function DiscoverRoomsModal({ isOpen, onClose }: DiscoverRoomsMod
                       </h3>
                       <div className="flex items-center space-x-2 mt-0.5">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider
-                          ${room.type === 'channel' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}
+                          ${room.type === RoomType.CHANNEL ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}
                         >
                           {room.type}
                         </span>

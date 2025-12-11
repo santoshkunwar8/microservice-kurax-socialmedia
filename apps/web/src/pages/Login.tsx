@@ -1,6 +1,7 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { apiClient } from '../services/api';
 import { useAuthStore } from '../store';
+import { AuthResponse } from '@kuraxx/types';
 
 type Tab = 'login' | 'register';
 
@@ -53,7 +54,7 @@ export default function LoginPage() {
         throw new Error('Registration failed');
       }
 
-      const data = response.data as AuthResponse;
+      const data = response.data.data as AuthResponse;
       setAuth(data.user, {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
