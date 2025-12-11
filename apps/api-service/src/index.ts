@@ -46,7 +46,13 @@ async function bootstrap(): Promise<void> {
   });
 
   // API routes
-  setupRoutes(app);
+  const apiRouter = express.Router();
+  setupRoutes(apiRouter);
+  
+  // Mount routes at /api (for production with path-based routing)
+  app.use('/api', apiRouter);
+  // Mount routes at / (for local development)
+  app.use('/', apiRouter);
 
   // Error handling
   app.use(notFoundMiddleware);
