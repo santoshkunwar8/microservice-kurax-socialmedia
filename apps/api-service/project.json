@@ -17,7 +17,7 @@
         "command": "tsc -p apps/api-service/tsconfig.json",
         "cwd": "{workspaceRoot}"
       },
-      "outputs": ["{projectRoot}/dist"]
+      "outputs": ["{workspaceRoot}/dist/apps/api-service"]
     },
     "lint": {
       "executor": "nx:run-commands",

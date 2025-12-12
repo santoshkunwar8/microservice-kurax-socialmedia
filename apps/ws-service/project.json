@@ -17,7 +17,7 @@
         "command": "tsc -p apps/ws-service/tsconfig.json",
         "cwd": "{workspaceRoot}"
       },
-      "outputs": ["{projectRoot}/dist"]
+      "outputs": ["{workspaceRoot}/dist/apps/ws-service"]
     },
     "lint": {
       "executor": "nx:run-commands",
