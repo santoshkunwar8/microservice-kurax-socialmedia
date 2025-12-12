@@ -1,12 +1,27 @@
-import Redis from 'ioredis';
+import Redis, { RedisOptions } from 'ioredis';
 import { config } from './index';
 import { REDIS_CHANNELS } from '@kuraxx/constants';
 
+const getClient = (overrideOptions: RedisOptions = {}) => {
+  const commonOptions: RedisOptions = {
+    ...overrideOptions,
+    tls: config.redis.url?.startsWith('rediss://') ? { rejectUnauthorized: false } : undefined,
+  };
+
+  if (config.redis.url) {
+    return new Redis(config.redis.url, commonOptions);
+  }
+
+  return new Redis({
+    host: config.redis.host,
+    port: config.redis.port,
+    password: config.redis.password || undefined,
+    ...commonOptions,
+  });
+};
+
 // Create Redis client for general operations
-export const redis = new Redis({
-  host: config.redis.host,
-  port: config.redis.port,
-  password: config.redis.password || undefined,
+export const redis = getClient({
   retryStrategy: (times) => {
     const delay = Math.min(times * 50, 2000);
     return delay;
@@ -15,18 +30,10 @@ export const redis = new Redis({
 });
 
 // Create separate Redis client for publishing
-export const redisPublisher = new Redis({
-  host: config.redis.host,
-  port: config.redis.port,
-  password: config.redis.password || undefined,
-});
+export const redisPublisher = getClient();
 
 // Create separate Redis client for subscribing
-export const redisSubscriber = new Redis({
-  host: config.redis.host,
-  port: config.redis.port,
-  password: config.redis.password || undefined,
-});
+export const redisSubscriber = getClient();
 
 // Redis event handlers
 redis.on('connect', () => {
