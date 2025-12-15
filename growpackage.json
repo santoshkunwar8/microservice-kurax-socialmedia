@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Starter",
+    "description": "Initial commit",
+    "amount": 900,
+    "amountBeforeDiscount": 1500,
+    "isPopular":false,
+    "features": ["Access to basic features", "Email support", "Single user"],
+    "socialMedia": ["Twitter", "Facebook", "LinkedIn"],
+    "packageType": [
+      {
+        "name": "Follow/subscription",
+        "description": "Initial commit",
+        "packageSubType": [
+          {
+            "name": "500 followers/subscribers",
+            "amount": 900,
+            "noOfFollowers": 500
+          },
+          {
+            "name": "2000 followers/subscribers",
+            "amount": 1500,
+            "noOfFollowers": 2000
+          },
+          {
+            "name": "3000 followers/subscribers",
+            "amount": 1500,
+            "noOfFollowers": 3000
+          }
+        ]
+      },
+      {
+        "name": "Engagements",
+        "description": "Initial commit",
+        "packageSubType": [
+          {
+            "name": "1 video",
+            "description": "200 likes per video . Total likes 200",
+            "noOfLikes": 200,
+            "amount": 900
+          },
+          {
+            "name": "3 videos",
+            "description": "200 likes per video . Total likes 600",
+            "noOfLikes": 600,
+            "amount": 1500
+          },
+          {
+            "name": "5 videos",
+            "description": "200 likes per video . Total likes 1000",
+            "noOfLikes": 1000,
+            "amount": 2000
+          }
+        ]
+      }
+    ]
+  }
+]
