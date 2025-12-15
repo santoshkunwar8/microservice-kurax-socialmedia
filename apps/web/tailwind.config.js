@@ -24,6 +24,9 @@ export default {
         'fade-in': 'fadeIn 0.3s ease-out',
         'fade-in-up': 'fadeInUp 0.4s ease-out',
         'slide-in': 'slideIn 0.3s ease-out',
+      },
+      scale: {
+        '102': '1.02',
       }
     },
   },

@@ -43,7 +43,7 @@ export default function LoginPage() {
         refreshToken,
         expiresIn,
       });
-      navigate('/chat');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -70,7 +70,7 @@ export default function LoginPage() {
         refreshToken: data.refreshToken,
         expiresIn: data.expiresIn,
       });
-      navigate('/chat');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

@@ -5,15 +5,17 @@ import { useWebSocket } from './hooks/useWebSocket';
 import { apiClient } from './services/api';
 import LoginPage from './pages/Login';
 import ChatPage from './pages/Chat';
+import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
+import RoomDetails from './pages/RoomDetails';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, accessToken } = useAuthStore();
-  
+
   if (!isAuthenticated || !accessToken) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 }
 
@@ -31,10 +33,10 @@ function AppContent() {
           // Add a timeout to prevent hanging forever
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
-          
+
           const response = await apiClient.users.getProfile();
           clearTimeout(timeoutId);
-          
+
           if (response.status === 200) {
             // @ts-ignore
             const userData = response.data.data?.user || response.data;
@@ -64,13 +66,29 @@ function AppContent() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route 
-        path="/chat" 
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/chat"
         element={
           <ProtectedRoute>
             <ChatPage />
           </ProtectedRoute>
-        } 
+        }
+      />
+      <Route
+        path="/room/:roomId"
+        element={
+          <ProtectedRoute>
+            <RoomDetails />
+          </ProtectedRoute>
+        }
       />
     </Routes>
   );
