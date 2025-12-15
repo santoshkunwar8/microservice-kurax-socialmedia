@@ -1,9 +1,48 @@
 import { useChatStore } from '../store';
-import type { MessageWithSender } from '@kuraxx/types';
+import type { MessageWithSender, MessageType } from '@kuraxx/types';
 
 interface MessageListProps {
   messages: MessageWithSender[];
   currentUserId?: string;
+}
+
+// System message component - Discord/WhatsApp style
+function SystemMessage({ message }: { message: MessageWithSender }) {
+  const isJoinMessage = message.content.includes('joined the room');
+  const isLeaveMessage = message.content.includes('left the room');
+  
+  return (
+    <div className="flex justify-center py-2 animate-fade-in-up">
+      <div className="flex items-center gap-2 px-4 py-1.5 bg-gray-100/80 rounded-full">
+        {/* Icon based on action */}
+        <span className="flex-shrink-0">
+          {isJoinMessage ? (
+            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          ) : isLeaveMessage ? (
+            <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
+        </span>
+        
+        {/* Message text */}
+        <span className="text-xs font-medium text-gray-500">
+          {message.content}
+        </span>
+        
+        {/* Timestamp */}
+        <span className="text-[10px] text-gray-400 ml-1">
+          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+      </div>
+    </div>
+  );
 }
 
 export default function MessageList({
@@ -26,9 +65,15 @@ export default function MessageList({
         </div>
       ) : (
         messages.map((message, index) => {
+          // Handle system messages (join/leave)
+          if (message.type === 'SYSTEM') {
+            return <SystemMessage key={message.id} message={message} />;
+          }
+
           const isOwn = message.senderId === currentUserId;
-          const showAvatar = !isOwn && (index === 0 || messages[index - 1].senderId !== message.senderId);
-          const showName = !isOwn && (index === 0 || messages[index - 1].senderId !== message.senderId);
+          const prevMessage = messages[index - 1];
+          const showAvatar = !isOwn && (index === 0 || prevMessage?.senderId !== message.senderId || prevMessage?.type === 'SYSTEM');
+          const showName = !isOwn && (index === 0 || prevMessage?.senderId !== message.senderId || prevMessage?.type === 'SYSTEM');
           
           return (
             <div

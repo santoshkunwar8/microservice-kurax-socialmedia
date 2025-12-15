@@ -1,5 +1,6 @@
 import { prisma } from '../config/database';
-import { PAGINATION, ROOM_CONFIG } from '@kuraxx/constants';
+import { publish } from '../config/redis';
+import { PAGINATION, ROOM_CONFIG, REDIS_CHANNELS } from '@kuraxx/constants';
 import {
   RoomNotFoundError,
   RoomAccessDeniedError,
@@ -7,7 +8,69 @@ import {
   ForbiddenError,
 } from '../utils/errors';
 import type { CreateRoomInput, UpdateRoomInput, PaginationInput } from '@kuraxx/contracts';
-import type { RoomWithMembers, RoomRole } from '@kuraxx/types';
+import type { RoomWithMembers, RoomRole, MessageWithSender } from '@kuraxx/types';
+
+// Helper to create and publish a system message
+async function createSystemMessage(
+  roomId: string,
+  content: string,
+  senderId: string
+): Promise<MessageWithSender> {
+  const message = await prisma.message.create({
+    data: {
+      content,
+      type: 'SYSTEM',
+      roomId,
+      senderId,
+      status: 'SENT',
+    },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+          avatarUrl: true,
+          isOnline: true,
+          lastSeenAt: true,
+        },
+      },
+      attachments: true,
+    },
+  });
+
+  const transformedMessage: MessageWithSender = {
+    id: message.id,
+    content: message.content,
+    type: message.type as any,
+    status: message.status as any,
+    roomId: message.roomId,
+    senderId: message.senderId,
+    replyToId: message.replyToId,
+    editedAt: message.editedAt,
+    deletedAt: message.deletedAt,
+    createdAt: message.createdAt,
+    updatedAt: message.updatedAt,
+    sender: {
+      id: message.sender.id,
+      username: message.sender.username,
+      displayName: message.sender.displayName,
+      avatarUrl: message.sender.avatarUrl,
+      isOnline: message.sender.isOnline,
+      lastSeenAt: message.sender.lastSeenAt,
+    },
+    attachments: message.attachments,
+    replyTo: null,
+  };
+
+  // Publish to Redis for real-time delivery
+  await publish(REDIS_CHANNELS.MESSAGES.SAVED, {
+    message: transformedMessage,
+    roomId,
+  });
+
+  return transformedMessage;
+}
 
 // Helper to transform Prisma result
 function transformRoom(room: any): RoomWithMembers {
@@ -497,6 +560,12 @@ export async function joinRoom(
     throw new ConflictError('You are already a member of this room');
   }
 
+  // Get user info for the system message
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { username: true, displayName: true },
+  });
+
   // Add as member
   await prisma.roomMember.create({
     data: {
@@ -506,6 +575,10 @@ export async function joinRoom(
     },
   });
 
+  // Create system message for join event
+  const displayName = user?.displayName || user?.username || 'Someone';
+  await createSystemMessage(roomId, `${displayName} joined the room`, userId);
+
   return getRoomById(userId, roomId);
 }
 
@@ -514,7 +587,12 @@ export async function leaveRoom(userId: string, roomId: string): Promise<void> {
     where: {
       userId_roomId: { userId, roomId },
     },
-    include: { room: true },
+    include: { 
+      room: true,
+      user: {
+        select: { username: true, displayName: true },
+      },
+    },
   });
 
   if (!member) {
@@ -537,6 +615,10 @@ export async function leaveRoom(userId: string, roomId: string): Promise<void> {
     });
     return;
   }
+
+  // Create system message for leave event before removing membership
+  const displayName = member.user?.displayName || member.user?.username || 'Someone';
+  await createSystemMessage(roomId, `${displayName} left the room`, userId);
 
   await prisma.roomMember.delete({
     where: {
