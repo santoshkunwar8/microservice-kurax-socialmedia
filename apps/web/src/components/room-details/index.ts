@@ -5,6 +5,7 @@ export { default as StatsBar } from './StatsBar';
 export { default as TabNavigation } from './TabNavigation';
 export { default as MessageInput } from './MessageInput';
 export { default as MembersSidebar } from './MembersSidebar';
+export { default as ChatSection } from './ChatSection';
 
 // Tabs
 export { default as ChatsTab } from './tabs/ChatsTab';
