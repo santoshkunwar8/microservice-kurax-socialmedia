@@ -41,7 +41,7 @@ for (const envVar of requiredEnvVars) {
 
 export const config: Config = {
   nodeEnv: process.env.NODE_ENV || 'development',
-  wsPort: parseInt(process.env.WS_PORT || '3002', 10),
+  wsPort: parseInt(process.env.PORT || process.env.WS_PORT || '3002', 10),
   wsHost: process.env.WS_HOST || '0.0.0.0',
   
   redis: {
