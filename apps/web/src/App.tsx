@@ -1,12 +1,24 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store';
 import { useWebSocket } from './hooks/useWebSocket';
 import { apiClient } from './services/api';
 import LoginPage from './pages/Login';
 import ChatPage from './pages/Chat';
+import LandingPage from './pages/LandingPage';
 
-function App() {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, accessToken } = useAuthStore();
+  
+  if (!isAuthenticated || !accessToken) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+function AppContent() {
+  const { accessToken } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useWebSocket(accessToken);
@@ -16,7 +28,13 @@ function App() {
       const token = useAuthStore.getState().accessToken;
       if (token && !useAuthStore.getState().user) {
         try {
+          // Add a timeout to prevent hanging forever
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
           const response = await apiClient.users.getProfile();
+          clearTimeout(timeoutId);
+          
           if (response.status === 200) {
             // @ts-ignore
             const userData = response.data.data?.user || response.data;
@@ -24,6 +42,8 @@ function App() {
           }
         } catch (error) {
           console.error('Failed to fetch profile', error);
+          // If profile fetch fails, clear invalid token and logout
+          useAuthStore.getState().logout();
         }
       }
       setIsLoading(false);
@@ -40,7 +60,28 @@ function App() {
     );
   }
 
-  return isAuthenticated && accessToken ? <ChatPage /> : <LoginPage />;
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route 
+        path="/chat" 
+        element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        } 
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
 }
 
 export default App;
