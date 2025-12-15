@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
     AnimatedBackground,
     RoomHeader,
@@ -12,17 +12,34 @@ import {
     CreatePostModal,
     CreateResourceModal,
     TabType,
-    mockOnlineMembers,
-    mockOfflineMembers,
     mockPosts,
     mockResources
 } from '../components/room-details';
+import { RoomMember } from '../components/room-details/MembersSidebar';
 import { wsManager } from '../hooks/useWebSocket';
 import { useAuthStore } from '../store';
+import { apiClient } from '../services/api';
+
+interface RoomData {
+    id: string;
+    name: string | null;
+    description: string | null;
+    type: string;
+    avatarUrl: string | null;
+    createdById: string;
+    members?: RoomMember[];
+}
 
 export default function RoomDetails() {
     const { roomId } = useParams<{ roomId: string }>();
+    const navigate = useNavigate();
     const { accessToken } = useAuthStore();
+
+    // Room data state
+    const [room, setRoom] = useState<RoomData | null>(null);
+    const [members, setMembers] = useState<RoomMember[]>([]);
+    const [isLoadingRoom, setIsLoadingRoom] = useState(true);
+    const [isLoadingMembers, setIsLoadingMembers] = useState(true);
 
     // UI State
     const [activeTab, setActiveTab] = useState<TabType>('chats');
@@ -44,6 +61,60 @@ export default function RoomDetails() {
             // Don't disconnect here as other components may need the connection
         };
     }, [accessToken]);
+
+    // Load room details
+    useEffect(() => {
+        const loadRoomDetails = async () => {
+            if (!roomId) return;
+            
+            setIsLoadingRoom(true);
+            try {
+                const response = await apiClient.rooms.getRoomById(roomId);
+                if (response.status === 200) {
+                    // @ts-ignore
+                    const roomData = response.data.data?.room;
+                    setRoom(roomData);
+                    // If room has members included, set them
+                    if (roomData?.members) {
+                        setMembers(roomData.members);
+                        setIsLoadingMembers(false);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load room details:', error);
+            } finally {
+                setIsLoadingRoom(false);
+            }
+        };
+
+        loadRoomDetails();
+    }, [roomId]);
+
+    // Load room members separately if not included in room data
+    useEffect(() => {
+        const loadMembers = async () => {
+            if (!roomId || (members.length > 0 && !isLoadingMembers)) return;
+            
+            setIsLoadingMembers(true);
+            try {
+                const response = await apiClient.rooms.getRoomMembers(roomId, 1, 100);
+                if (response.status === 200) {
+                    // @ts-ignore
+                    const membersData = response.data.data?.members || [];
+                    setMembers(membersData);
+                }
+            } catch (error) {
+                console.error('Failed to load room members:', error);
+            } finally {
+                setIsLoadingMembers(false);
+            }
+        };
+
+        // Only load if room is loaded and members not already loaded
+        if (!isLoadingRoom && room) {
+            loadMembers();
+        }
+    }, [roomId, isLoadingRoom, room]);
 
     // Handlers
     const handleCreatePost = () => {
@@ -74,6 +145,14 @@ export default function RoomDetails() {
         setResourceType('Document');
     };
 
+    const handleLeaveRoom = async () => {
+        // TODO: Implement leave room functionality
+        navigate('/dashboard');
+    };
+
+    // Calculate online count
+    const onlineCount = members.filter(m => m.user?.isOnline).length;
+
     if (!roomId) {
         return (
             <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -89,8 +168,14 @@ export default function RoomDetails() {
             {/* Main Content */}
             <div className="flex-1 flex flex-col relative">
                 <RoomHeader
+                    roomName={room?.name || ''}
+                    roomType={room?.type}
+                    memberCount={members.length}
+                    onlineCount={onlineCount}
                     showMembers={showMembers}
                     onToggleMembers={() => setShowMembers(!showMembers)}
+                    onLeaveRoom={handleLeaveRoom}
+                    isLoading={isLoadingRoom}
                 />
 
                 <StatsBar />
@@ -128,8 +213,8 @@ export default function RoomDetails() {
                     {/* Members Sidebar */}
                     {showMembers && (
                         <MembersSidebar
-                            onlineMembers={mockOnlineMembers}
-                            offlineMembers={mockOfflineMembers}
+                            members={members}
+                            isLoading={isLoadingMembers}
                             onClose={() => setShowMembers(false)}
                         />
                     )}

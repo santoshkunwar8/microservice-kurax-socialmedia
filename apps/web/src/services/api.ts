@@ -107,6 +107,12 @@ export const apiClient = {
     createRoom: (name: string, type: string = "GROUP") =>
       api.post("/rooms/create", { name, type }),
     joinRoom: (roomId: string) => api.post(`/rooms/${roomId}/join`),
+    getRoomById: (roomId: string) =>
+      api.get(`/rooms/${roomId}`),
+    getRoomMembers: (roomId: string, page = 1, limit = 50) =>
+      api.get(`/rooms/${roomId}/members`, {
+        params: { page, limit }
+      }),
     getRoomMessages: (roomId: string, skip = 0, take = 50) =>
       api.get(`/messages/history`, {
         params: { roomId, limit: take }
