@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, Share2, Users, LogOut, Crown, Activity, Menu } from 'lucide-react';
+import { ChevronLeft, Share2, Users, LogOut, Crown, Activity, Menu, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface RoomHeaderProps {
@@ -11,6 +11,7 @@ interface RoomHeaderProps {
     onToggleMembers: () => void;
     onLeaveRoom?: () => void;
     isLoading?: boolean;
+    isLeavingRoom?: boolean;
 }
 
 export default function RoomHeader({ 
@@ -21,7 +22,8 @@ export default function RoomHeader({
     showMembers, 
     onToggleMembers,
     onLeaveRoom,
-    isLoading = false
+    isLoading = false,
+    isLeavingRoom = false
 }: RoomHeaderProps) {
     const navigate = useNavigate();
 
@@ -106,10 +108,15 @@ export default function RoomHeader({
                     </button>
                     <button 
                         onClick={onLeaveRoom}
-                        className="group flex items-center space-x-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all border border-red-500/30 hover:border-red-500/50 text-red-400 hover:scale-105"
+                        disabled={isLeavingRoom}
+                        className="group flex items-center space-x-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all border border-red-500/30 hover:border-red-500/50 text-red-400 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                        <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-                        <span className="text-sm font-semibold">Leave</span>
+                        {isLeavingRoom ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                        )}
+                        <span className="text-sm font-semibold">{isLeavingRoom ? 'Leaving...' : 'Leave'}</span>
                     </button>
                 </div>
 
@@ -125,8 +132,16 @@ export default function RoomHeader({
                     >
                         <Users className="w-4 h-4" />
                     </button>
-                    <button className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all border border-white/10">
-                        <Menu className="w-4 h-4" />
+                    <button 
+                        onClick={onLeaveRoom}
+                        disabled={isLeavingRoom}
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all border border-red-500/30 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isLeavingRoom ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <LogOut className="w-4 h-4" />
+                        )}
                     </button>
                 </div>
             </div>

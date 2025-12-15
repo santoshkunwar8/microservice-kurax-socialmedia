@@ -40,6 +40,7 @@ export default function RoomDetails() {
     const [members, setMembers] = useState<RoomMember[]>([]);
     const [isLoadingRoom, setIsLoadingRoom] = useState(true);
     const [isLoadingMembers, setIsLoadingMembers] = useState(true);
+    const [isLeavingRoom, setIsLeavingRoom] = useState(false);
 
     // UI State
     const [activeTab, setActiveTab] = useState<TabType>('chats');
@@ -146,8 +147,21 @@ export default function RoomDetails() {
     };
 
     const handleLeaveRoom = async () => {
-        // TODO: Implement leave room functionality
-        navigate('/dashboard');
+        if (!roomId || isLeavingRoom) return;
+        
+        const confirmLeave = window.confirm('Are you sure you want to leave this room?');
+        if (!confirmLeave) return;
+        
+        setIsLeavingRoom(true);
+        try {
+            await apiClient.rooms.leaveRoom(roomId);
+            navigate('/dashboard');
+        } catch (error) {
+            console.error('Failed to leave room:', error);
+            alert('Failed to leave room. Please try again.');
+        } finally {
+            setIsLeavingRoom(false);
+        }
     };
 
     // Calculate online count
@@ -176,6 +190,7 @@ export default function RoomDetails() {
                     onToggleMembers={() => setShowMembers(!showMembers)}
                     onLeaveRoom={handleLeaveRoom}
                     isLoading={isLoadingRoom}
+                    isLeavingRoom={isLeavingRoom}
                 />
 
                 <StatsBar />
