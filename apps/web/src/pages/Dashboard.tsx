@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useChatStore } from '../store';
 import { apiClient } from '../services/api';
@@ -25,9 +25,18 @@ interface Room {
   };
 }
 
+interface PlatformStats {
+  onlineUsers: number;
+  totalUsers: number;
+  activeRooms: number;
+  totalRooms: number;
+  messagesToday: number;
+  messagesTotal: number;
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, logout, accessToken } = useAuthStore();
   const { rooms, setRooms, setSelectedRoom } = useChatStore();
 
   // UI State
@@ -42,9 +51,58 @@ export default function Dashboard() {
   // Discover rooms (all public rooms)
   const [discoverRooms, setDiscoverRooms] = useState<Room[]>([]);
 
-  // Stats (simulated for now)
-  const [onlineUsers, setOnlineUsers] = useState(15847);
-  const [activeRooms, setActiveRooms] = useState(324);
+  // Stats (real-time from API)
+  const [stats, setStats] = useState<PlatformStats>({
+    onlineUsers: 0,
+    totalUsers: 0,
+    activeRooms: 0,
+    totalRooms: 0,
+    messagesToday: 0,
+    messagesTotal: 0,
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  // Fetch stats from API
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await apiClient.stats.getStats();
+      if (response.status === 200 && response.data.data) {
+        setStats(response.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  }, []);
+
+  // Connect to WebSocket and listen for stats updates
+  useEffect(() => {
+    if (!accessToken) return;
+
+    wsManager.connect(accessToken).catch(console.error);
+
+    // Listen for stats updates via WebSocket
+    const handleStatsUpdate = (data: unknown) => {
+      setStats(data as PlatformStats);
+    };
+
+    wsManager.on('stats:update', handleStatsUpdate);
+
+    return () => {
+      wsManager.off('stats:update', handleStatsUpdate);
+    };
+  }, [accessToken]);
+
+  // Fetch initial stats and poll for updates
+  useEffect(() => {
+    fetchStats();
+
+    // Poll stats every 30 seconds for real-time updates
+    const statsInterval = setInterval(fetchStats, 30000);
+
+    return () => clearInterval(statsInterval);
+  }, [fetchStats]);
 
   // Load user's rooms and discover rooms
   useEffect(() => {
@@ -76,15 +134,6 @@ export default function Dashboard() {
 
     loadRooms();
   }, [setRooms]);
-
-  // Simulate real-time stats updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setOnlineUsers((prev) => prev + Math.floor(Math.random() * 20 - 10));
-      setActiveRooms((prev) => Math.max(1, prev + Math.floor(Math.random() * 4 - 2)));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleLogout = () => {
     wsManager.disconnect();
@@ -187,9 +236,13 @@ export default function Dashboard() {
         />
 
         <StatsGrid
-          onlineUsers={onlineUsers}
-          activeRooms={activeRooms}
+          onlineUsers={stats.onlineUsers}
+          activeRooms={stats.activeRooms}
+          messagesToday={stats.messagesToday}
           userRoomsCount={rooms.length}
+          totalUsers={stats.totalUsers}
+          totalRooms={stats.totalRooms}
+          isLoading={isLoadingStats}
         />
 
         <RoomFilters filterType={filterType} onFilterChange={setFilterType} />

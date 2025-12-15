@@ -2,12 +2,15 @@ import { useEffect, useRef } from 'react';
 import { useChatStore } from '../store';
 import type { WSEventType } from '@kuraxx/types';
 
+type EventHandler = (data: unknown) => void;
+
 class WebSocketManager {
   private ws: WebSocket | null = null;
   private url: string;
   private token: string | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private eventHandlers: Map<string, Set<EventHandler>> = new Map();
 
   constructor(url: string) {
     this.url = url;
@@ -50,12 +53,39 @@ class WebSocketManager {
     this.send('authenticate', { token: this.token });
   }
 
+  // Subscribe to events
+  on(event: string, handler: EventHandler): void {
+    if (!this.eventHandlers.has(event)) {
+      this.eventHandlers.set(event, new Set());
+    }
+    this.eventHandlers.get(event)!.add(handler);
+  }
+
+  // Unsubscribe from events
+  off(event: string, handler: EventHandler): void {
+    const handlers = this.eventHandlers.get(event);
+    if (handlers) {
+      handlers.delete(handler);
+    }
+  }
+
+  // Emit event to registered handlers
+  private emit(event: string, data: unknown): void {
+    const handlers = this.eventHandlers.get(event);
+    if (handlers) {
+      handlers.forEach(handler => handler(data));
+    }
+  }
+
   private handleMessage(data: string): void {
     try {
       const message = JSON.parse(data);
       const { type, payload } = message;
 
       console.log('WS Message:', type, payload);
+
+      // Emit to registered handlers first
+      this.emit(type, payload);
 
       switch (type) {
         case 'authenticated':
@@ -73,7 +103,8 @@ class WebSocketManager {
           useChatStore.getState().setTypingUser(payload.userId, false);
           break;
         default:
-          console.log('Unhandled message type:', type);
+          // Handled by emit above for custom listeners
+          break;
       }
     } catch (error) {
       console.error('Error handling WebSocket message:', error);

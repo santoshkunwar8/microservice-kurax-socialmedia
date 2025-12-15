@@ -141,6 +141,22 @@ export const apiClient = {
       api.patch("/users/me", { displayName, avatar }),
   },
 
+  // Stats endpoints
+  stats: {
+    getStats: () =>
+      api.get<{
+        success: boolean;
+        data: {
+          onlineUsers: number;
+          totalUsers: number;
+          activeRooms: number;
+          totalRooms: number;
+          messagesToday: number;
+          messagesTotal: number;
+        };
+      }>("/stats"),
+  },
+
   // Upload endpoints
   upload: {
     uploadFile: (file: File) => {

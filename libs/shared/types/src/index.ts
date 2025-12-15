@@ -188,6 +188,9 @@ export enum WSEventType {
   ROOM_JOIN = 'room:join',
   ROOM_LEAVE = 'room:leave',
   ROOM_UPDATE = 'room:update',
+
+  // Stats events
+  STATS_UPDATE = 'stats:update',
 }
 
 export interface WSMessage<T = unknown> {
