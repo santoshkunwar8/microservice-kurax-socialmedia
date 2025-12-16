@@ -221,8 +221,8 @@ export default function ChatSection({ roomId }: ChatSectionProps) {
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.data?.url) {
-                        uploadedUrls.push(data.data.url);
+                    if (data.data?.file?.url) {
+                        uploadedUrls.push(data.data.file.url);
                     }
                 }
             }
@@ -242,8 +242,8 @@ export default function ChatSection({ roomId }: ChatSectionProps) {
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.data?.url) {
-                        uploadedUrls.push(data.data.url);
+                    if (data.data?.file?.url) {
+                        uploadedUrls.push(data.data.file.url);
                     }
                 }
             }
