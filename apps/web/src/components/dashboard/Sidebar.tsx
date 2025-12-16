@@ -11,7 +11,13 @@ import {
   Music,
   Coffee,
   X,
+  Tag,
 } from 'lucide-react';
+
+interface TopicWithCount {
+  name: string;
+  count: number;
+}
 
 interface SidebarProps {
   collapsed: boolean;
@@ -20,14 +26,26 @@ interface SidebarProps {
   userRoomsCount: number;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
+  topics?: TopicWithCount[];
 }
 
-const trendingTopics = [
-  { name: 'Web Development', count: '1.2k', icon: <Code className="w-4 h-4" /> },
-  { name: 'Gaming', count: '890', icon: <Gamepad2 className="w-4 h-4" /> },
-  { name: 'Music Production', count: '654', icon: <Music className="w-4 h-4" /> },
-  { name: 'Coffee Chat', count: '543', icon: <Coffee className="w-4 h-4" /> },
-];
+// Icon mapping for common topics
+const getTopicIcon = (name: string) => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('code') || lowerName.includes('development') || lowerName.includes('programming')) {
+    return <Code className="w-4 h-4" />;
+  }
+  if (lowerName.includes('game') || lowerName.includes('gaming')) {
+    return <Gamepad2 className="w-4 h-4" />;
+  }
+  if (lowerName.includes('music')) {
+    return <Music className="w-4 h-4" />;
+  }
+  if (lowerName.includes('coffee') || lowerName.includes('chat')) {
+    return <Coffee className="w-4 h-4" />;
+  }
+  return <Tag className="w-4 h-4" />;
+};
 
 export default function Sidebar({
   collapsed,
@@ -36,6 +54,7 @@ export default function Sidebar({
   userRoomsCount,
   isMobileOpen = false,
   onMobileClose,
+  topics = [],
 }: SidebarProps) {
   return (
     <>
@@ -151,23 +170,31 @@ export default function Sidebar({
       {(!collapsed || isMobileOpen) && (
         <div className="mt-8 pt-8 border-t border-white/10">
           <h3 className="text-xs font-semibold text-gray-400 uppercase mb-3">
-            Trending Topics
+            {topics.length > 0 ? 'Room Topics' : 'No Topics Yet'}
           </h3>
-          <div className="space-y-2">
-            {trendingTopics.map((topic, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer transition group"
-              >
-                <div className="flex items-center space-x-2">
-                  <div className="text-purple-400">{topic.icon}</div>
-                  <span className="text-sm group-hover:text-white transition">
-                    {topic.name}
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {topics.length > 0 ? (
+              topics.map((topic, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer transition group"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="text-purple-400">{getTopicIcon(topic.name)}</div>
+                    <span className="text-sm group-hover:text-white transition">
+                      {topic.name}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">
+                    {topic.count} {topic.count === 1 ? 'room' : 'rooms'}
                   </span>
                 </div>
-                <span className="text-xs text-gray-500">{topic.count}</span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-xs text-gray-500 px-3">
+                Create a room with topics to see them here
+              </p>
+            )}
           </div>
         </div>
       )}

@@ -41,9 +41,14 @@ export interface Room {
   description: string | null;
   type: RoomType;
   avatarUrl: string | null;
+  topics?: string[];
   createdById: string;
   createdAt: Date;
   updatedAt: Date;
+  _count?: {
+    members: number;
+    messages: number;
+  };
 }
 
 export interface RoomWithMembers extends Room {

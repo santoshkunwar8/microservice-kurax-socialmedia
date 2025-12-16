@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     AnimatedBackground,
@@ -12,8 +12,6 @@ import {
     CreatePostModal,
     CreateResourceModal,
     TabType,
-    mockPosts,
-    mockResources
 } from '../components/room-details';
 import { RoomMember } from '../components/room-details/MembersSidebar';
 import { wsManager } from '../hooks/useWebSocket';
@@ -30,6 +28,39 @@ interface RoomData {
     members?: RoomMember[];
 }
 
+interface PostData {
+    id: string;
+    content: string;
+    authorId: string;
+    attachments: string[];
+    likes: number;
+    createdAt: string;
+    author: {
+        id: string;
+        username: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+    };
+    _count: {
+        comments: number;
+    };
+}
+
+interface ResourceData {
+    id: string;
+    title: string;
+    type: string;
+    fileUrl: string | null;
+    authorId: string;
+    createdAt: string;
+    author: {
+        id: string;
+        username: string;
+        displayName: string | null;
+        avatarUrl: string | null;
+    };
+}
+
 export default function RoomDetails() {
     const { roomId } = useParams<{ roomId: string }>();
     const navigate = useNavigate();
@@ -41,6 +72,21 @@ export default function RoomDetails() {
     const [isLoadingRoom, setIsLoadingRoom] = useState(true);
     const [isLoadingMembers, setIsLoadingMembers] = useState(true);
     const [isLeavingRoom, setIsLeavingRoom] = useState(false);
+
+    // Posts and Resources state
+    const [posts, setPosts] = useState<PostData[]>([]);
+    const [resources, setResources] = useState<ResourceData[]>([]);
+    const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+    const [isLoadingResources, setIsLoadingResources] = useState(false);
+    const [isCreatingPost, setIsCreatingPost] = useState(false);
+    const [isCreatingResource, setIsCreatingResource] = useState(false);
+
+    // File upload state
+    const [postAttachments, setPostAttachments] = useState<string[]>([]);
+    const [resourceFileUrl, setResourceFileUrl] = useState<string>('');
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const resourceFileInputRef = useRef<HTMLInputElement>(null);
 
     // UI State
     const [activeTab, setActiveTab] = useState<TabType>('chats');
@@ -117,33 +163,165 @@ export default function RoomDetails() {
         }
     }, [roomId, isLoadingRoom, room]);
 
-    // Handlers
-    const handleCreatePost = () => {
-        if (postContent.trim()) {
-            console.log('Creating post:', postContent);
-            setShowPostModal(false);
-            setPostContent('');
+    // Load posts
+    const loadPosts = useCallback(async () => {
+        if (!roomId) return;
+        
+        setIsLoadingPosts(true);
+        try {
+            const response = await apiClient.posts.getPosts(roomId);
+            if (response.status === 200) {
+                // @ts-ignore
+                const postsData = response.data.data?.posts || [];
+                setPosts(postsData);
+            }
+        } catch (error) {
+            console.error('Failed to load posts:', error);
+        } finally {
+            setIsLoadingPosts(false);
+        }
+    }, [roomId]);
+
+    // Load resources
+    const loadResources = useCallback(async () => {
+        if (!roomId) return;
+        
+        setIsLoadingResources(true);
+        try {
+            const response = await apiClient.resources.getResources(roomId);
+            if (response.status === 200) {
+                // @ts-ignore
+                const resourcesData = response.data.data?.resources || [];
+                setResources(resourcesData);
+            }
+        } catch (error) {
+            console.error('Failed to load resources:', error);
+        } finally {
+            setIsLoadingResources(false);
+        }
+    }, [roomId]);
+
+    // Load posts and resources when tab changes
+    useEffect(() => {
+        if (activeTab === 'posts' && posts.length === 0) {
+            loadPosts();
+        } else if (activeTab === 'resources' && resources.length === 0) {
+            loadResources();
+        }
+    }, [activeTab, loadPosts, loadResources, posts.length, resources.length]);
+
+    // Handle file upload for posts
+    const handlePostFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const response = await apiClient.upload.uploadFile(file);
+            if (response.status === 201) {
+                // @ts-ignore
+                const fileUrl = response.data.data?.file?.url;
+                if (fileUrl) {
+                    setPostAttachments(prev => [...prev, fileUrl]);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to upload file:', error);
+            alert('Failed to upload file');
+        } finally {
+            setIsUploading(false);
         }
     };
 
-    const handleCreateResource = () => {
-        if (resourceTitle.trim()) {
-            console.log('Creating resource:', { title: resourceTitle, type: resourceType });
-            setShowResourceModal(false);
-            setResourceTitle('');
-            setResourceType('Document');
+    // Handle file upload for resources
+    const handleResourceFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const response = await apiClient.upload.uploadFile(file);
+            if (response.status === 201) {
+                // @ts-ignore
+                const fileUrl = response.data.data?.file?.url;
+                if (fileUrl) {
+                    setResourceFileUrl(fileUrl);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to upload file:', error);
+            alert('Failed to upload file');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // Handlers
+    const handleCreatePost = async () => {
+        if (!postContent.trim() || !roomId) return;
+        
+        setIsCreatingPost(true);
+        try {
+            const response = await apiClient.posts.createPost(roomId, postContent, postAttachments);
+            if (response.status === 201) {
+                // @ts-ignore
+                const newPost = response.data.data?.post;
+                if (newPost) {
+                    setPosts(prev => [newPost, ...prev]);
+                }
+                setShowPostModal(false);
+                setPostContent('');
+                setPostAttachments([]);
+            }
+        } catch (error) {
+            console.error('Failed to create post:', error);
+            alert('Failed to create post');
+        } finally {
+            setIsCreatingPost(false);
+        }
+    };
+
+    const handleCreateResource = async () => {
+        if (!resourceTitle.trim() || !roomId) return;
+        
+        setIsCreatingResource(true);
+        try {
+            const response = await apiClient.resources.createResource(
+                roomId,
+                resourceTitle,
+                resourceType,
+                resourceFileUrl || undefined
+            );
+            if (response.status === 201) {
+                // @ts-ignore
+                const newResource = response.data.data?.resource;
+                if (newResource) {
+                    setResources(prev => [newResource, ...prev]);
+                }
+                setShowResourceModal(false);
+                setResourceTitle('');
+                setResourceType('Document');
+                setResourceFileUrl('');
+            }
+        } catch (error) {
+            console.error('Failed to create resource:', error);
+            alert('Failed to create resource');
+        } finally {
+            setIsCreatingResource(false);
         }
     };
 
     const handleClosePostModal = () => {
         setShowPostModal(false);
         setPostContent('');
+        setPostAttachments([]);
     };
 
     const handleCloseResourceModal = () => {
         setShowResourceModal(false);
         setResourceTitle('');
         setResourceType('Document');
+        setResourceFileUrl('');
     };
 
     const handleLeaveRoom = async () => {
@@ -167,6 +345,31 @@ export default function RoomDetails() {
     // Calculate online count
     const onlineCount = members.filter(m => m.user?.isOnline).length;
 
+    // Transform posts to the expected format for PostsTab
+    const transformedPosts = posts.map(post => ({
+        id: parseInt(post.id.slice(0, 8), 16) || Math.random(), // Convert UUID to number for display
+        user: post.author.displayName || post.author.username,
+        avatar: post.author.avatarUrl || post.author.username.charAt(0).toUpperCase(),
+        content: post.content,
+        likes: post.likes,
+        comments: post._count.comments,
+        date: new Date(post.createdAt).toLocaleDateString(),
+        gradient: 'from-purple-500 to-pink-500',
+        commentsList: [], // Comments are loaded separately
+    }));
+
+    // Transform resources to the expected format for ResourcesTab
+    const transformedResources = resources.map(resource => ({
+        id: parseInt(resource.id.slice(0, 8), 16) || Math.random(),
+        title: resource.title,
+        type: resource.type,
+        sharedBy: resource.author.displayName || resource.author.username,
+        date: new Date(resource.createdAt).toLocaleDateString(),
+        icon: null, // Will be handled by ResourcesTab
+        gradient: 'from-cyan-600 to-blue-600',
+        fileUrl: resource.fileUrl,
+    }));
+
     if (!roomId) {
         return (
             <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -178,6 +381,22 @@ export default function RoomDetails() {
     return (
         <div className="min-h-screen bg-black text-white flex">
             <AnimatedBackground />
+
+            {/* Hidden file inputs */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePostFileUpload}
+                className="hidden"
+                accept="image/*,application/pdf,.doc,.docx,.txt"
+            />
+            <input
+                type="file"
+                ref={resourceFileInputRef}
+                onChange={handleResourceFileUpload}
+                className="hidden"
+                accept="*/*"
+            />
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col relative">
@@ -209,18 +428,30 @@ export default function RoomDetails() {
                         )}
                         {activeTab === 'posts' && (
                             <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                                <PostsTab
-                                    posts={mockPosts}
-                                    onCreatePost={() => setShowPostModal(true)}
-                                />
+                                {isLoadingPosts ? (
+                                    <div className="flex items-center justify-center py-20">
+                                        <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
+                                    </div>
+                                ) : (
+                                    <PostsTab
+                                        posts={transformedPosts}
+                                        onCreatePost={() => setShowPostModal(true)}
+                                    />
+                                )}
                             </div>
                         )}
                         {activeTab === 'resources' && (
                             <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                                <ResourcesTab
-                                    resources={mockResources}
-                                    onCreateResource={() => setShowResourceModal(true)}
-                                />
+                                {isLoadingResources ? (
+                                    <div className="flex items-center justify-center py-20">
+                                        <div className="animate-spin h-8 w-8 border-4 border-cyan-500 border-t-transparent rounded-full"></div>
+                                    </div>
+                                ) : (
+                                    <ResourcesTab
+                                        resources={transformedResources}
+                                        onCreateResource={() => setShowResourceModal(true)}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>
@@ -242,6 +473,10 @@ export default function RoomDetails() {
                     onPostContentChange={setPostContent}
                     onClose={handleClosePostModal}
                     onSubmit={handleCreatePost}
+                    isLoading={isCreatingPost}
+                    attachments={postAttachments}
+                    onAttachFile={() => fileInputRef.current?.click()}
+                    isUploading={isUploading}
                 />
 
                 <CreateResourceModal
@@ -252,6 +487,10 @@ export default function RoomDetails() {
                     onResourceTypeChange={setResourceType}
                     onClose={handleCloseResourceModal}
                     onSubmit={handleCreateResource}
+                    isLoading={isCreatingResource}
+                    fileUrl={resourceFileUrl}
+                    onUploadFile={() => resourceFileInputRef.current?.click()}
+                    isUploading={isUploading}
                 />
             </div>
         </div>

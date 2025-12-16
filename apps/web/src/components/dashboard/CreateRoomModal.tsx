@@ -1,10 +1,49 @@
 import { useState } from 'react';
-import { Plus, Globe, Lock } from 'lucide-react';
+import { Plus, Globe, Lock, X } from 'lucide-react';
+
+// Hardcoded list of available topics
+const AVAILABLE_TOPICS = [
+  'Web Development',
+  'Mobile Development',
+  'Data Science',
+  'Machine Learning',
+  'DevOps',
+  'Cloud Computing',
+  'Cybersecurity',
+  'Blockchain',
+  'Game Development',
+  'UI/UX Design',
+  'Frontend',
+  'Backend',
+  'Full Stack',
+  'JavaScript',
+  'Python',
+  'React',
+  'Node.js',
+  'AI',
+  'Startups',
+  'Career',
+  'Open Source',
+  'Music',
+  'Gaming',
+  'Art & Design',
+  'Photography',
+  'Writing',
+  'Fitness',
+  'Travel',
+  'Food',
+  'Books',
+  'Movies',
+  'Tech News',
+  'Productivity',
+  'Networking',
+  'Mentorship',
+];
 
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, type: 'GROUP' | 'PRIVATE') => Promise<void>;
+  onCreate: (name: string, type: 'GROUP' | 'PRIVATE', topics: string[]) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -16,15 +55,31 @@ export default function CreateRoomModal({
 }: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState('');
   const [roomType, setRoomType] = useState<'public' | 'private'>('public');
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [topicSearch, setTopicSearch] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
     if (!roomName.trim()) return;
-    await onCreate(roomName, roomType === 'public' ? 'GROUP' : 'PRIVATE');
+    await onCreate(roomName, roomType === 'public' ? 'GROUP' : 'PRIVATE', selectedTopics);
     setRoomName('');
     setRoomType('public');
+    setSelectedTopics([]);
+    setTopicSearch('');
   };
+
+  const toggleTopic = (topic: string) => {
+    setSelectedTopics(prev => 
+      prev.includes(topic) 
+        ? prev.filter(t => t !== topic)
+        : [...prev, topic]
+    );
+  };
+
+  const filteredTopics = AVAILABLE_TOPICS.filter(topic =>
+    topic.toLowerCase().includes(topicSearch.toLowerCase())
+  );
 
   return (
     <div
@@ -32,7 +87,7 @@ export default function CreateRoomModal({
       onClick={onClose}
     >
       <div
-        className="relative bg-black/90 backdrop-blur-xl border border-white/20 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl"
+        className="relative bg-black/90 backdrop-blur-xl border border-white/20 rounded-3xl p-8 max-w-lg w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -89,6 +144,62 @@ export default function CreateRoomModal({
                 <Lock className="w-5 h-5 mx-auto mb-1" />
                 <div className="text-sm font-semibold">Private</div>
               </button>
+            </div>
+          </div>
+
+          {/* Topics Selection */}
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-gray-300">
+              Topics (optional)
+            </label>
+            
+            {/* Selected Topics */}
+            {selectedTopics.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedTopics.map(topic => (
+                  <span
+                    key={topic}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-500/50 text-purple-400 rounded-full text-sm"
+                  >
+                    {topic}
+                    <button
+                      onClick={() => toggleTopic(topic)}
+                      className="hover:text-white transition"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Search Topics */}
+            <input
+              type="text"
+              value={topicSearch}
+              onChange={(e) => setTopicSearch(e.target.value)}
+              placeholder="Search topics..."
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 mb-3 focus:outline-none focus:border-purple-500/50 transition text-sm"
+            />
+
+            {/* Topics Grid */}
+            <div className="max-h-40 overflow-y-auto rounded-xl border border-white/10 p-3 bg-white/5">
+              <div className="flex flex-wrap gap-2">
+                {filteredTopics.map(topic => (
+                  <button
+                    key={topic}
+                    type="button"
+                    onClick={() => toggleTopic(topic)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      selectedTopics.includes(topic)
+                        ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                    }`}
+                  >
+                    {topic}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

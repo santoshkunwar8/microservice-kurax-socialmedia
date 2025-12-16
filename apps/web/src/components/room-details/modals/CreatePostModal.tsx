@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Paperclip, Video, Smile } from 'lucide-react';
+import { Sparkles, Paperclip, Video, Smile, Loader2, X, Image } from 'lucide-react';
 
 interface CreatePostModalProps {
     isOpen: boolean;
@@ -7,9 +7,23 @@ interface CreatePostModalProps {
     onPostContentChange: (content: string) => void;
     onClose: () => void;
     onSubmit: () => void;
+    isLoading?: boolean;
+    attachments?: string[];
+    onAttachFile?: () => void;
+    isUploading?: boolean;
 }
 
-export default function CreatePostModal({ isOpen, postContent, onPostContentChange, onClose, onSubmit }: CreatePostModalProps) {
+export default function CreatePostModal({ 
+    isOpen, 
+    postContent, 
+    onPostContentChange, 
+    onClose, 
+    onSubmit,
+    isLoading = false,
+    attachments = [],
+    onAttachFile,
+    isUploading = false,
+}: CreatePostModalProps) {
     if (!isOpen) return null;
 
     return (
@@ -29,9 +43,7 @@ export default function CreatePostModal({ isOpen, postContent, onPostContentChan
                         onClick={onClose}
                         className="p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X className="w-6 h-6" />
                     </button>
                 </div>
 
@@ -47,14 +59,43 @@ export default function CreatePostModal({ isOpen, postContent, onPostContentChan
                             placeholder="Share your thoughts, ideas, or updates with the community..."
                             rows={6}
                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-lg focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition resize-none"
+                            disabled={isLoading}
                         />
                     </div>
 
+                    {/* Attachments Preview */}
+                    {attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {attachments.map((url, idx) => (
+                                <div key={idx} className="relative group">
+                                    <img 
+                                        src={url} 
+                                        alt={`Attachment ${idx + 1}`}
+                                        className="w-20 h-20 object-cover rounded-lg border border-white/20"
+                                    />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-lg">
+                                        <Image className="w-6 h-6" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     {/* Attachment Options */}
                     <div className="flex items-center space-x-3">
-                        <button className="flex items-center space-x-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 hover:border-cyan-500/50">
-                            <Paperclip className="w-4 h-4" />
-                            <span className="text-sm font-semibold">Attach File</span>
+                        <button 
+                            onClick={onAttachFile}
+                            disabled={isUploading}
+                            className="flex items-center space-x-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 hover:border-cyan-500/50 disabled:opacity-50"
+                        >
+                            {isUploading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Paperclip className="w-4 h-4" />
+                            )}
+                            <span className="text-sm font-semibold">
+                                {isUploading ? 'Uploading...' : 'Attach File'}
+                            </span>
                         </button>
                         <button className="flex items-center space-x-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 hover:border-pink-500/50">
                             <Video className="w-4 h-4" />
@@ -71,15 +112,18 @@ export default function CreatePostModal({ isOpen, postContent, onPostContentChan
                 <div className="flex items-center justify-end space-x-3 p-6 border-t border-white/10">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 font-semibold"
+                        disabled={isLoading}
+                        className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 font-semibold disabled:opacity-50"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={onSubmit}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 rounded-xl transition-all font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105"
+                        disabled={isLoading || !postContent.trim()}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 rounded-xl transition-all font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
                     >
-                        Share Post
+                        {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {isLoading ? 'Sharing...' : 'Share Post'}
                     </button>
                 </div>
             </div>

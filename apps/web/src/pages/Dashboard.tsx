@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useChatStore } from '../store';
 import { apiClient } from '../services/api';
@@ -19,6 +19,7 @@ interface Room {
   name: string | null;
   type: 'GROUP' | 'DIRECT' | 'PRIVATE' | 'CHANNEL';
   memberCount?: number;
+  topics?: string[];
   _count?: {
     members: number;
     messages: number;
@@ -141,10 +142,10 @@ export default function Dashboard() {
     navigate('/login');
   };
 
-  const handleCreateRoom = async (name: string, type: 'GROUP' | 'PRIVATE') => {
+  const handleCreateRoom = async (name: string, type: 'GROUP' | 'PRIVATE', topics: string[] = []) => {
     setIsCreating(true);
     try {
-      const response = await apiClient.rooms.createRoom(name, type);
+      const response = await apiClient.rooms.createRoom(name, type, topics);
       if (response.status === 201 || response.status === 200) {
         // @ts-ignore
         const newRoom = response.data.data?.room || response.data.data;
@@ -191,6 +192,22 @@ export default function Dashboard() {
     ...discoverRooms.filter((r: Room) => !userRoomIds.has(r.id)),
   ];
 
+  // Compute topics from all rooms
+  const topicsWithCount = useMemo(() => {
+    const topicMap = new Map<string, number>();
+    allRooms.forEach((room: Room) => {
+      if (room.topics && room.topics.length > 0) {
+        room.topics.forEach(topic => {
+          topicMap.set(topic, (topicMap.get(topic) || 0) + 1);
+        });
+      }
+    });
+    return Array.from(topicMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // Show top 10 topics
+  }, [allRooms]);
+
   // Filter rooms based on search and filter type
   const filteredRooms = allRooms.filter((room: Room) => {
     const matchesSearch = (room.name || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -219,6 +236,7 @@ export default function Dashboard() {
         userRoomsCount={rooms.length}
         isMobileOpen={mobileSidebarOpen}
         onMobileClose={() => setMobileSidebarOpen(false)}
+        topics={topicsWithCount}
       />
 
       <main

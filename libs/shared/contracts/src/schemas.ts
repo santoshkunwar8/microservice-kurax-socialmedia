@@ -74,6 +74,7 @@ export const createRoomSchema = z.object({
     .optional(),
   type: roomTypeSchema.default('GROUP'),
   memberIds: z.array(z.string().uuid()).optional(),
+  topics: z.array(z.string()).optional(),
 });
 
 export const updateRoomSchema = z.object({

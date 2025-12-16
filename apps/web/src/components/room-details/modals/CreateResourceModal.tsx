@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Paperclip } from 'lucide-react';
+import { FileText, Paperclip, Loader2, X, Check } from 'lucide-react';
 
 interface CreateResourceModalProps {
     isOpen: boolean;
@@ -9,6 +9,10 @@ interface CreateResourceModalProps {
     onResourceTypeChange: (type: string) => void;
     onClose: () => void;
     onSubmit: () => void;
+    isLoading?: boolean;
+    fileUrl?: string;
+    onUploadFile?: () => void;
+    isUploading?: boolean;
 }
 
 const RESOURCE_TYPES = ['Document', 'Tutorial', 'Article', 'Video', 'Code', 'Other'];
@@ -20,7 +24,11 @@ export default function CreateResourceModal({
     onResourceTitleChange,
     onResourceTypeChange,
     onClose,
-    onSubmit
+    onSubmit,
+    isLoading = false,
+    fileUrl = '',
+    onUploadFile,
+    isUploading = false,
 }: CreateResourceModalProps) {
     if (!isOpen) return null;
 
@@ -41,9 +49,7 @@ export default function CreateResourceModal({
                         onClick={onClose}
                         className="p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X className="w-6 h-6" />
                     </button>
                 </div>
 
@@ -59,6 +65,7 @@ export default function CreateResourceModal({
                             onChange={(e) => onResourceTitleChange(e.target.value)}
                             placeholder="Enter resource title..."
                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-lg focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition"
+                            disabled={isLoading}
                         />
                     </div>
 
@@ -71,10 +78,11 @@ export default function CreateResourceModal({
                                 <button
                                     key={type}
                                     onClick={() => onResourceTypeChange(type)}
+                                    disabled={isLoading}
                                     className={`px-4 py-3 rounded-xl font-semibold transition-all border ${resourceType === type
                                             ? 'bg-gradient-to-r from-cyan-600 to-blue-600 border-cyan-500/50 shadow-lg shadow-cyan-500/30'
                                             : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-cyan-500/30'
-                                        }`}
+                                        } disabled:opacity-50`}
                                 >
                                     {type}
                                 </button>
@@ -83,14 +91,29 @@ export default function CreateResourceModal({
                     </div>
 
                     {/* Upload Area */}
-                    <div className="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-cyan-500/50 transition-all cursor-pointer bg-white/5">
+                    <div 
+                        onClick={onUploadFile}
+                        className={`border-2 border-dashed rounded-2xl p-8 text-center hover:border-cyan-500/50 transition-all cursor-pointer bg-white/5 ${
+                            fileUrl ? 'border-green-500/50' : 'border-white/20'
+                        } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                    >
                         <div className="flex flex-col items-center space-y-3">
-                            <div className="p-4 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-2xl">
-                                <Paperclip className="w-8 h-8" />
+                            <div className={`p-4 rounded-2xl ${fileUrl ? 'bg-gradient-to-br from-green-600 to-emerald-600' : 'bg-gradient-to-br from-cyan-600 to-blue-600'}`}>
+                                {isUploading ? (
+                                    <Loader2 className="w-8 h-8 animate-spin" />
+                                ) : fileUrl ? (
+                                    <Check className="w-8 h-8" />
+                                ) : (
+                                    <Paperclip className="w-8 h-8" />
+                                )}
                             </div>
                             <div>
-                                <p className="text-lg font-semibold mb-1">Upload Resource</p>
-                                <p className="text-sm text-gray-400">Click to browse or drag and drop</p>
+                                <p className="text-lg font-semibold mb-1">
+                                    {isUploading ? 'Uploading...' : fileUrl ? 'File Uploaded!' : 'Upload Resource'}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                    {fileUrl ? 'Click to replace file' : 'Click to browse or drag and drop'}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -100,15 +123,18 @@ export default function CreateResourceModal({
                 <div className="flex items-center justify-end space-x-3 p-6 border-t border-white/10">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 font-semibold"
+                        disabled={isLoading}
+                        className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 font-semibold disabled:opacity-50"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={onSubmit}
-                        className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl transition-all font-semibold shadow-lg hover:shadow-cyan-500/50 hover:scale-105"
+                        disabled={isLoading || !resourceTitle.trim()}
+                        className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl transition-all font-semibold shadow-lg hover:shadow-cyan-500/50 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
                     >
-                        Share Resource
+                        {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {isLoading ? 'Sharing...' : 'Share Resource'}
                     </button>
                 </div>
             </div>

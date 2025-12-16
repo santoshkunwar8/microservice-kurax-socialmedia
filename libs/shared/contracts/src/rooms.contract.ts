@@ -22,6 +22,7 @@ const roomSchema = z.object({
   description: z.string().nullable(),
   type: roomTypeSchema,
   avatarUrl: z.string().url().nullable(),
+  topics: z.array(z.string()).optional(),
   createdById: z.string().uuid(),
   createdAt: z.date(),
   updatedAt: z.date(),

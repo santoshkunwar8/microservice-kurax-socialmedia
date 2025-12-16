@@ -104,8 +104,8 @@ export const apiClient = {
         success: boolean;
         data: { rooms: Room[] };
       }>("/rooms/discover"),
-    createRoom: (name: string, type: string = "GROUP") =>
-      api.post("/rooms/create", { name, type }),
+    createRoom: (name: string, type: string = "GROUP", topics: string[] = []) =>
+      api.post("/rooms/create", { name, type, topics }),
     joinRoom: (roomId: string) => api.post(`/rooms/${roomId}/join`),
     leaveRoom: (roomId: string) => api.post(`/rooms/${roomId}/leave`),
     getRoomById: (roomId: string) =>
@@ -162,13 +162,46 @@ export const apiClient = {
     uploadFile: (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      return api.post("/upload", formData, {
+      return api.post("/upload/file", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+    uploadImage: (file: File, purpose: string = 'message') => {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("purpose", purpose);
+      return api.post("/upload/image", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
     },
     deleteFile: (fileId: string) => api.delete(`/upload/${fileId}`),
+  },
+
+  // Posts endpoints
+  posts: {
+    createPost: (roomId: string, content: string, attachments?: string[]) =>
+      api.post("/posts", { roomId, content, attachments }),
+    getPosts: (roomId: string, page: number = 1, limit: number = 20) =>
+      api.get(`/posts/room/${roomId}`, { params: { page, limit } }),
+    getComments: (postId: string, page: number = 1, limit: number = 50) =>
+      api.get(`/posts/${postId}/comments`, { params: { page, limit } }),
+    addComment: (postId: string, content: string) =>
+      api.post(`/posts/${postId}/comments`, { content }),
+    likePost: (postId: string) => api.post(`/posts/${postId}/like`),
+    deletePost: (postId: string) => api.delete(`/posts/${postId}`),
+  },
+
+  // Resources endpoints
+  resources: {
+    createResource: (roomId: string, title: string, type: string, fileUrl?: string) =>
+      api.post("/resources", { roomId, title, type, fileUrl }),
+    getResources: (roomId: string, page: number = 1, limit: number = 20) =>
+      api.get(`/resources/room/${roomId}`, { params: { page, limit } }),
+    deleteResource: (resourceId: string) => api.delete(`/resources/${resourceId}`),
   },
 };
 
