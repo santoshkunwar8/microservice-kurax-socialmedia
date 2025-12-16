@@ -83,6 +83,8 @@ function transformRoom(room: any): RoomWithMembers {
     createdById: room.createdById,
     createdAt: room.createdAt,
     updatedAt: room.updatedAt,
+    topics: room.topics || [],
+    _count: room._count,
     members: room.members?.map((m: any) => ({
       id: m.id,
       userId: m.userId,
@@ -105,7 +107,7 @@ export async function createRoom(
   userId: string,
   input: CreateRoomInput
 ): Promise<RoomWithMembers> {
-  const { name, description, type, memberIds } = input;
+  const { name, description, type, memberIds, topics } = input;
 
   // For direct messages, we need exactly one other member
   if (type === 'DIRECT') {
@@ -151,6 +153,7 @@ export async function createRoom(
       name: type !== 'DIRECT' ? name : null,
       description,
       type,
+      topics: topics || [],
       createdById: userId,
       members: {
         create: [
@@ -265,6 +268,9 @@ export async function discoverRooms(
               },
             },
           },
+        },
+        _count: {
+          select: { messages: true, members: true },
         },
       },
     }),

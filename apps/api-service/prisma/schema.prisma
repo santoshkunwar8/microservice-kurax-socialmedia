@@ -29,6 +29,9 @@ model User {
   messages        Message[]
   refreshTokens   RefreshToken[]
   fileMetadata    FileMetadata[]
+  posts           Post[]           @relation("UserPosts")
+  postComments    PostComment[]    @relation("UserPostComments")
+  resources       Resource[]       @relation("UserResources")
 
   @@index([email])
   @@index([username])
@@ -60,6 +63,7 @@ model Room {
   description String?
   type        RoomType @default(GROUP)
   avatarUrl   String?  @map("avatar_url")
+  topics      String[] @default([])
   createdById String   @map("created_by_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -68,6 +72,8 @@ model Room {
   createdBy User         @relation("CreatedRooms", fields: [createdById], references: [id])
   members   RoomMember[]
   messages  Message[]
+  posts     Post[]
+  resources Resource[]
 
   @@index([type])
   @@index([createdById])
@@ -176,7 +182,7 @@ model FileMetadata {
   storagePath  String   @map("storage_path")
   url          String
   thumbnailUrl String?  @map("thumbnail_url")
-  purpose      String   @default("message") // avatar, message, room
+  purpose      String   @default("message") // avatar, message, room, post, resource
   createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -185,4 +191,63 @@ model FileMetadata {
   @@index([userId])
   @@index([storagePath])
   @@map("file_metadata")
+}
+
+// ============= Post Model =============
+model Post {
+  id          String   @id @default(uuid())
+  content     String
+  roomId      String   @map("room_id")
+  authorId    String   @map("author_id")
+  attachments String[] @default([])
+  likes       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  room     Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author   User          @relation("UserPosts", fields: [authorId], references: [id])
+  comments PostComment[]
+
+  @@index([roomId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+// ============= Post Comment Model =============
+model PostComment {
+  id        String   @id @default(uuid())
+  content   String
+  postId    String   @map("post_id")
+  authorId  String   @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation("UserPostComments", fields: [authorId], references: [id])
+
+  @@index([postId])
+  @@index([authorId])
+  @@map("post_comments")
+}
+
+// ============= Resource Model =============
+model Resource {
+  id        String   @id @default(uuid())
+  title     String
+  type      String   // Document, Tutorial, Article, Video, Code, Other
+  fileUrl   String?  @map("file_url")
+  roomId    String   @map("room_id")
+  authorId  String   @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author User @relation("UserResources", fields: [authorId], references: [id])
+
+  @@index([roomId])
+  @@index([authorId])
+  @@map("resources")
 }
