@@ -56,6 +56,7 @@ interface ChatStore {
   messages: any[];
   rooms: any[];
   typingUsers: Map<string, boolean>;
+  onlineUsers: Map<string, boolean>;
 
   setSelectedRoom: (roomId: string | null) => void;
   addMessage: (message: any) => void;
@@ -63,6 +64,8 @@ interface ChatStore {
   setMessages: (messages: any[]) => void;
   setRooms: (rooms: any[]) => void;
   setTypingUser: (userId: string, isTyping: boolean) => void;
+  setOnlineUser: (userId: string, isOnline: boolean) => void;
+  setOnlineUsers: (users: { userId: string, isOnline: boolean }[]) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -70,6 +73,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   messages: [],
   rooms: [],
   typingUsers: new Map(),
+  onlineUsers: new Map(),
 
   setSelectedRoom: (roomId) => set({ selectedRoomId: roomId }),
   addMessage: (message) =>
@@ -78,7 +82,9 @@ export const useChatStore = create<ChatStore>((set) => ({
       if (state.messages.some((m) => m.id === message.id)) {
         return state;
       }
-      return { messages: [...state.messages, message] };
+      // Always keep messages sorted by createdAt descending (latest first)
+      const newMessages = [...state.messages, message].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      return { messages: newMessages };
     }),
   replaceMessage: (tempId, realMessage) =>
     set((state) => {
@@ -95,7 +101,7 @@ export const useChatStore = create<ChatStore>((set) => ({
         ),
       };
     }),
-  setMessages: (messages) => set({ messages }),
+  setMessages: (messages) => set({ messages: messages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) }),
   setRooms: (rooms) => set({ rooms }),
   setTypingUser: (userId, isTyping) =>
     set((state) => {
@@ -106,5 +112,23 @@ export const useChatStore = create<ChatStore>((set) => ({
         newTypingUsers.delete(userId);
       }
       return { typingUsers: newTypingUsers };
+    }),
+  setOnlineUser: (userId, isOnline) =>
+    set((state) => {
+      const newOnlineUsers = new Map(state.onlineUsers);
+      if (isOnline) {
+        newOnlineUsers.set(userId, true);
+      } else {
+        newOnlineUsers.delete(userId);
+      }
+      return { onlineUsers: newOnlineUsers };
+    }),
+  setOnlineUsers: (users) =>
+    set(() => {
+      const newOnlineUsers = new Map();
+      users.forEach(({ userId, isOnline }) => {
+        if (isOnline) newOnlineUsers.set(userId, true);
+      });
+      return { onlineUsers: newOnlineUsers };
     }),
 }));

@@ -102,6 +102,16 @@ class WebSocketManager {
         case 'typing:stop':
           useChatStore.getState().setTypingUser(payload.userId, false);
           break;
+        case 'presence:online':
+          if (payload && payload.userId) {
+            useChatStore.getState().setOnlineUser(payload.userId, true);
+          }
+          break;
+        case 'presence:offline':
+          if (payload && payload.userId) {
+            useChatStore.getState().setOnlineUser(payload.userId, false);
+          }
+          break;
         default:
           // Handled by emit above for custom listeners
           break;
