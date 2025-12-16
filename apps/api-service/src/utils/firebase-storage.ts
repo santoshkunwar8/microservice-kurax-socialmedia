@@ -11,14 +11,15 @@ export async function uploadFileToFirebase(
   fileBuffer: Buffer,
   originalFileName: string,
   mimeType: string,
-  purpose: 'avatar' | 'message' | 'room' = 'message',
-  userId: string
+  userId: string,
+  mediaType: string // e.g., 'image', 'video', 'audio', etc.
 ): Promise<FileUploadResult> {
   try {
     const bucket = getFirebaseBucket();
     const fileExtension = originalFileName.split('.').pop() || '';
     const fileName = `${uuidv4()}.${fileExtension}`;
-    const storagePath = `${FILE_UPLOAD.STORAGE_PATHS[purpose.toUpperCase() as keyof typeof FILE_UPLOAD.STORAGE_PATHS] || 'attachments'}/${userId}/${fileName}`;
+    // Store in kurax/{mediaType}/filename
+    const storagePath = `kurax/${mediaType}/${fileName}`;
 
     const file = bucket.file(storagePath);
 

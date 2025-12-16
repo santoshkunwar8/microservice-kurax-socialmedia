@@ -14,7 +14,7 @@ export async function uploadFile(
   fileBuffer: Buffer,
   originalFileName: string,
   mimeType: string,
-  purpose: 'avatar' | 'message' | 'room' = 'message'
+  mediaType: string // e.g., 'image', 'video', 'audio', etc.
 ): Promise<FileUploadResult> {
   // Validate file
   validateFile(fileBuffer.length, mimeType, false);
@@ -24,8 +24,8 @@ export async function uploadFile(
     fileBuffer,
     originalFileName,
     mimeType,
-    purpose,
-    userId
+    userId,
+    mediaType
   );
 
   // Store metadata in database
@@ -38,7 +38,7 @@ export async function uploadFile(
       mimeType: result.mimeType,
       storagePath: result.url.split('.com/')[1] || result.url,
       url: result.url,
-      purpose,
+      // purpose removed, now using mediaType in storage path only
     },
   });
 
@@ -50,19 +50,24 @@ export async function uploadImage(
   fileBuffer: Buffer,
   originalFileName: string,
   mimeType: string,
-  purpose: 'avatar' | 'message' | 'room' = 'message'
+  mediaType: string // e.g., 'image', 'video', 'audio', etc.
 ): Promise<FileUploadResult> {
   // Validate image
   validateFile(fileBuffer.length, mimeType, true);
 
   // Upload to Firebase
-  const result = await uploadImageToFirebase(
+  const result = await uploadFileToFirebase(
     fileBuffer,
     originalFileName,
     mimeType,
-    purpose,
-    userId
+    userId,
+    mediaType
   );
+  // For now, thumbnailUrl is the same as url for non-image types
+  return {
+    ...result,
+    thumbnailUrl: result.url,
+  };
 
   // Store metadata in database
   await prisma.fileMetadata.create({
@@ -75,7 +80,7 @@ export async function uploadImage(
       storagePath: result.url.split('.com/')[1] || result.url,
       url: result.url,
       thumbnailUrl: result.thumbnailUrl,
-      purpose,
+      // purpose removed, now using mediaType in storage path only
     },
   });
 
