@@ -1,4 +1,6 @@
 import { prisma } from '../config/database';
+import { publish } from '../config/redis';
+import { REDIS_CHANNELS } from '@kuraxx/constants';
 import { RoomAccessDeniedError, NotFoundError } from '../utils/errors';
 
 export interface CreatePostInput {
@@ -66,6 +68,12 @@ export async function createPost(
         select: { comments: true },
       },
     },
+  });
+
+  // Publish to Redis for real-time updates
+  await publish(REDIS_CHANNELS.POSTS.NEW, {
+    post,
+    roomId: input.roomId,
   });
 
   return post as PostWithAuthor;

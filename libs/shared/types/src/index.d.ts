@@ -33,9 +33,14 @@ export interface Room {
     description: string | null;
     type: RoomType;
     avatarUrl: string | null;
+    topics?: string[];
     createdById: string;
     createdAt: Date;
     updatedAt: Date;
+    _count?: {
+        members: number;
+        messages: number;
+    };
 }
 export interface RoomWithMembers extends Room {
     members: RoomMember[];
@@ -150,7 +155,15 @@ export declare enum WSEventType {
     TYPING_STOP = "typing:stop",
     ROOM_JOIN = "room:join",
     ROOM_LEAVE = "room:leave",
-    ROOM_UPDATE = "room:update"
+    ROOM_UPDATE = "room:update",
+    POST_NEW = "post:new",
+    POST_UPDATE = "post:update",
+    POST_DELETE = "post:delete",
+    POST_COMMENT = "post:comment",
+    POST_LIKE = "post:like",
+    RESOURCE_NEW = "resource:new",
+    RESOURCE_DELETE = "resource:delete",
+    STATS_UPDATE = "stats:update"
 }
 export interface WSMessage<T = unknown> {
     type: WSEventType;

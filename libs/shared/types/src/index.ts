@@ -194,6 +194,17 @@ export enum WSEventType {
   ROOM_LEAVE = 'room:leave',
   ROOM_UPDATE = 'room:update',
 
+  // Post events
+  POST_NEW = 'post:new',
+  POST_UPDATE = 'post:update',
+  POST_DELETE = 'post:delete',
+  POST_COMMENT = 'post:comment',
+  POST_LIKE = 'post:like',
+
+  // Resource events
+  RESOURCE_NEW = 'resource:new',
+  RESOURCE_DELETE = 'resource:delete',
+
   // Stats events
   STATS_UPDATE = 'stats:update',
 }

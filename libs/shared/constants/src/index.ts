@@ -21,6 +21,18 @@ export const REDIS_CHANNELS = {
     JOIN: 'room:join',
     LEAVE: 'room:leave',
     UPDATE: 'room:update',
+    CREATED: 'room:created',
+  },
+  POSTS: {
+    NEW: 'posts:new',
+    UPDATE: 'posts:update',
+    DELETE: 'posts:delete',
+    COMMENT: 'posts:comment',
+    LIKE: 'posts:like',
+  },
+  RESOURCES: {
+    NEW: 'resources:new',
+    DELETE: 'resources:delete',
   },
 } as const;
 

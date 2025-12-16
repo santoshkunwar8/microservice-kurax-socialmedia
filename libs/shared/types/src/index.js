@@ -53,5 +53,15 @@ export var WSEventType;
     WSEventType["ROOM_JOIN"] = "room:join";
     WSEventType["ROOM_LEAVE"] = "room:leave";
     WSEventType["ROOM_UPDATE"] = "room:update";
+    // Post events
+    WSEventType["POST_NEW"] = "post:new";
+    WSEventType["POST_UPDATE"] = "post:update";
+    WSEventType["POST_DELETE"] = "post:delete";
+    WSEventType["POST_COMMENT"] = "post:comment";
+    WSEventType["POST_LIKE"] = "post:like";
+    // Resource events
+    WSEventType["RESOURCE_NEW"] = "resource:new";
+    WSEventType["RESOURCE_DELETE"] = "resource:delete";
+    // Stats events
+    WSEventType["STATS_UPDATE"] = "stats:update";
 })(WSEventType || (WSEventType = {}));
-//# sourceMappingURL=index.js.map

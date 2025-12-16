@@ -1,4 +1,6 @@
 import { prisma } from '../config/database';
+import { publish } from '../config/redis';
+import { REDIS_CHANNELS } from '@kuraxx/constants';
 import { RoomAccessDeniedError, NotFoundError } from '../utils/errors';
 
 export interface CreateResourceInput {
@@ -62,6 +64,12 @@ export async function createResource(
         },
       },
     },
+  });
+
+  // Publish to Redis for real-time updates
+  await publish(REDIS_CHANNELS.RESOURCES.NEW, {
+    resource,
+    roomId: input.roomId,
   });
 
   return resource as ResourceWithAuthor;

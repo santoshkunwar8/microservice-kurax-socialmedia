@@ -585,6 +585,14 @@ export async function joinRoom(
   const displayName = user?.displayName || user?.username || 'Someone';
   await createSystemMessage(roomId, `${displayName} joined the room`, userId);
 
+  // Publish join event to Redis
+  await publish(REDIS_CHANNELS.ROOM.JOIN, {
+    roomId,
+    userId,
+    username: user?.username,
+    displayName,
+  });
+
   return getRoomById(userId, roomId);
 }
 
@@ -625,6 +633,14 @@ export async function leaveRoom(userId: string, roomId: string): Promise<void> {
   // Create system message for leave event before removing membership
   const displayName = member.user?.displayName || member.user?.username || 'Someone';
   await createSystemMessage(roomId, `${displayName} left the room`, userId);
+
+  // Publish leave event to Redis
+  await publish(REDIS_CHANNELS.ROOM.LEAVE, {
+    roomId,
+    userId,
+    username: member.user?.username,
+    displayName,
+  });
 
   await prisma.roomMember.delete({
     where: {

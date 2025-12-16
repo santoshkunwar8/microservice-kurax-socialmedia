@@ -102,7 +102,8 @@ export default function ChatWindow() {
     setIsTyping(false);
 
     try {
-      // Send via API
+      // Send via API - API will save to DB AND publish to Redis
+      // WS Service receives from Redis and broadcasts to all clients
       const response = await apiClient.messages.sendMessage(selectedRoomId, messageText, tempMessage.id);
       
       if (response.status === 201) {
@@ -115,8 +116,8 @@ export default function ChatWindow() {
       // TODO: Show error state for the message
     }
 
-    // Also send via WS for real-time updates (if backend supports it)
-    wsManager.sendMessage(selectedRoomId, messageText);
+    // Note: No wsManager.sendMessage() needed - API publishes to Redis,
+    // WS Service subscribes and broadcasts to all connected clients
   };
 
   if (!selectedRoom) {

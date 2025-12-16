@@ -28,6 +28,16 @@ interface RedisRoomEventPayload {
   username: string;
 }
 
+interface RedisPostPayload {
+  post: unknown;
+  roomId: string;
+}
+
+interface RedisResourcePayload {
+  resource: unknown;
+  roomId: string;
+}
+
 /**
  * Handle incoming Redis messages and broadcast to appropriate clients
  */
@@ -66,6 +76,32 @@ export function handleRedisMessage(channel: string, data: unknown): void {
 
     case REDIS_CHANNELS.ROOM.LEAVE:
       handleRoomLeave(data as RedisRoomEventPayload);
+      break;
+
+    // Post events
+    case REDIS_CHANNELS.POSTS.NEW:
+      handlePostNew(data as RedisPostPayload);
+      break;
+
+    case REDIS_CHANNELS.POSTS.DELETE:
+      handlePostDelete(data as { postId: string; roomId: string });
+      break;
+
+    case REDIS_CHANNELS.POSTS.COMMENT:
+      handlePostComment(data as { comment: unknown; postId: string; roomId: string });
+      break;
+
+    case REDIS_CHANNELS.POSTS.LIKE:
+      handlePostLike(data as { postId: string; roomId: string; likes: number });
+      break;
+
+    // Resource events
+    case REDIS_CHANNELS.RESOURCES.NEW:
+      handleResourceNew(data as RedisResourcePayload);
+      break;
+
+    case REDIS_CHANNELS.RESOURCES.DELETE:
+      handleResourceDelete(data as { resourceId: string; roomId: string });
       break;
 
     default:
@@ -191,4 +227,70 @@ function handleRoomLeave(data: RedisRoomEventPayload): void {
   );
 
   console.log(`Notified room ${roomId} that ${username} left`);
+}
+
+/**
+ * Handle new post - broadcast to room members
+ */
+function handlePostNew(data: RedisPostPayload): void {
+  const { post, roomId } = data;
+
+  connectionManager.sendToRoom(roomId, WSEventType.POST_NEW, { post });
+
+  console.log(`Broadcasted new post to room ${roomId}`);
+}
+
+/**
+ * Handle post delete - broadcast to room members
+ */
+function handlePostDelete(data: { postId: string; roomId: string }): void {
+  const { postId, roomId } = data;
+
+  connectionManager.sendToRoom(roomId, WSEventType.POST_DELETE, { postId });
+
+  console.log(`Broadcasted post delete to room ${roomId}`);
+}
+
+/**
+ * Handle post comment - broadcast to room members
+ */
+function handlePostComment(data: { comment: unknown; postId: string; roomId: string }): void {
+  const { comment, postId, roomId } = data;
+
+  connectionManager.sendToRoom(roomId, WSEventType.POST_COMMENT, { comment, postId });
+
+  console.log(`Broadcasted new comment on post ${postId} to room ${roomId}`);
+}
+
+/**
+ * Handle post like - broadcast to room members
+ */
+function handlePostLike(data: { postId: string; roomId: string; likes: number }): void {
+  const { postId, roomId, likes } = data;
+
+  connectionManager.sendToRoom(roomId, WSEventType.POST_LIKE, { postId, likes });
+
+  console.log(`Broadcasted like update on post ${postId} to room ${roomId}`);
+}
+
+/**
+ * Handle new resource - broadcast to room members
+ */
+function handleResourceNew(data: RedisResourcePayload): void {
+  const { resource, roomId } = data;
+
+  connectionManager.sendToRoom(roomId, WSEventType.RESOURCE_NEW, { resource });
+
+  console.log(`Broadcasted new resource to room ${roomId}`);
+}
+
+/**
+ * Handle resource delete - broadcast to room members
+ */
+function handleResourceDelete(data: { resourceId: string; roomId: string }): void {
+  const { resourceId, roomId } = data;
+
+  connectionManager.sendToRoom(roomId, WSEventType.RESOURCE_DELETE, { resourceId });
+
+  console.log(`Broadcasted resource delete to room ${roomId}`);
 }
