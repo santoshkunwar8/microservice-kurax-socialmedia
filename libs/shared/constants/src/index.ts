@@ -107,6 +107,7 @@ export const FILE_UPLOAD = {
     'image/png',
     'image/gif',
     'image/webp',
+    'audio/webm', // allow voice message uploads
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
