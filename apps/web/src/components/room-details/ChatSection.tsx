@@ -42,16 +42,6 @@ export default function ChatSection({ roomId }: ChatSectionProps) {
     const recordingIntervalRef = useRef<ReturnType<typeof setInterval>>();
     const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
-export default function ChatSection({ roomId }: ChatSectionProps) {
-    const { messages } = useChatStore();
-    const { user } = useAuthStore();
-    const [messageText, setMessageText] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const messagesContainerRef = useRef<HTMLDivElement>(null);
-
     // Filter messages for this room
     const roomMessages = messages.filter((m) => m.roomId === roomId);
 
