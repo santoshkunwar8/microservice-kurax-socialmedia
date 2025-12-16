@@ -91,10 +91,12 @@ export default function RoomHeader({
 
                 {/* Right Section - Desktop */}
                 <div className="hidden md:flex items-center space-x-3">
+                    {/* Share button - temporarily disabled
                     <button className="group flex items-center space-x-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 hover:border-purple-500/50 hover:scale-105">
                         <Share2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
                         <span className="text-sm font-semibold">Share</span>
                     </button>
+                    */}
                     <button
                         onClick={onToggleMembers}
                         className={`group flex items-center space-x-2 px-5 py-2.5 rounded-xl transition-all border hover:scale-105 ${

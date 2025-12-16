@@ -26,6 +26,12 @@ interface RoomData {
     avatarUrl: string | null;
     createdById: string;
     members?: RoomMember[];
+    _count?: {
+        messages: number;
+        members: number;
+        posts: number;
+        resources: number;
+    };
 }
 
 interface PostData {
@@ -412,7 +418,12 @@ export default function RoomDetails() {
                     isLeavingRoom={isLeavingRoom}
                 />
 
-                <StatsBar />
+                <StatsBar
+                    messageCount={room?._count?.messages || 0}
+                    postCount={room?._count?.posts || 0}
+                    resourceCount={room?._count?.resources || 0}
+                    isLoading={isLoadingRoom}
+                />
 
                 <TabNavigation
                     activeTab={activeTab}

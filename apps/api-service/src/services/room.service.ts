@@ -304,6 +304,14 @@ export async function getRoomById(
           },
         },
       },
+      _count: {
+        select: {
+          messages: true,
+          members: true,
+          posts: true,
+          resources: true,
+        },
+      },
     },
   });
 
