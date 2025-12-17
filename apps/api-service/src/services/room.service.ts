@@ -103,56 +103,29 @@ function transformRoom(room: any): RoomWithMembers {
   };
 }
 
+import { hashPassword, verifyPassword } from '../utils/password';
+
 export async function createRoom(
   userId: string,
   input: CreateRoomInput
 ): Promise<RoomWithMembers> {
-  const { name, description, type, memberIds, topics } = input;
+  const { name, description, type, memberIds, topics, passcode } = input;
 
-  // For direct messages, we need exactly one other member
-  if (type === 'DIRECT') {
-    if (!memberIds || memberIds.length !== 1) {
-      throw new ConflictError('Direct messages require exactly one other member');
-    }
-
-    // Check if a direct room already exists between these users
-    const existingRoom = await prisma.room.findFirst({
-      where: {
-        type: 'DIRECT',
-        AND: [
-          { members: { some: { userId } } },
-          { members: { some: { userId: memberIds[0] } } },
-        ],
-      },
-      include: {
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true,
-                avatarUrl: true,
-                isOnline: true,
-                lastSeenAt: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (existingRoom) {
-      return transformRoom(existingRoom);
-    }
+  if (type === 'PRIVATE' && (!passcode || passcode.length < 4)) {
+    throw new ConflictError('A passcode of at least 4 characters is required for private rooms');
   }
 
-  // Create room
+  let hashedPasscode: string | undefined = undefined;
+  if (type === 'PRIVATE' && passcode) {
+    hashedPasscode = await hashPassword(passcode);
+  }
+
   const room = await prisma.room.create({
     data: {
-      name: type !== 'DIRECT' ? name : null,
+      name,
       description,
-      type,
+      type: type as any,
+      passcode: hashedPasscode,
       topics: topics || [],
       createdById: userId,
       members: {
@@ -471,9 +444,8 @@ export async function addRoomMember(
 
   // Check room member limit
   const memberCount = await prisma.roomMember.count({ where: { roomId } });
-  const maxMembers = member.room.type === 'CHANNEL' 
-    ? ROOM_CONFIG.MAX_CHANNEL_MEMBERS 
-    : ROOM_CONFIG.MAX_GROUP_MEMBERS;
+  // For now, use a single max member limit for all rooms (customize as needed)
+  const maxMembers = 1000;
 
   if (memberCount >= maxMembers) {
     throw new ConflictError(`Room has reached maximum member limit of ${maxMembers}`);
@@ -548,7 +520,8 @@ export async function removeRoomMember(
 
 export async function joinRoom(
   userId: string,
-  roomId: string
+  roomId: string,
+  passcode?: string
 ): Promise<RoomWithMembers> {
   const room = await prisma.room.findUnique({
     where: { id: roomId },
@@ -558,9 +531,14 @@ export async function joinRoom(
     throw new RoomNotFoundError();
   }
 
-  // Allow joining both CHANNEL and GROUP rooms
-  if (room.type !== 'CHANNEL' && room.type !== 'GROUP') {
-    throw new ForbiddenError('You can only join channel or group rooms directly');
+  if (room.type === 'PRIVATE') {
+    const roomPasscode = (room as any).passcode as string | undefined;
+    if (!passcode) {
+      throw new ForbiddenError('Passcode required to join this private room');
+    }
+    if (!roomPasscode || !(await verifyPassword(passcode, roomPasscode))) {
+      throw new ForbiddenError('Invalid passcode');
+    }
   }
 
   // Check if already a member

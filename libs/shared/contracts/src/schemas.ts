@@ -61,7 +61,7 @@ export const searchUsersSchema = z.object({
 });
 
 // ============= Room Schemas =============
-export const roomTypeSchema = z.enum(['DIRECT', 'GROUP', 'CHANNEL']);
+export const roomTypeSchema = z.enum(['PUBLIC', 'PRIVATE']);
 
 export const createRoomSchema = z.object({
   name: z
@@ -72,9 +72,10 @@ export const createRoomSchema = z.object({
     .string()
     .max(ROOM_CONFIG.MAX_DESCRIPTION_LENGTH)
     .optional(),
-  type: roomTypeSchema.default('GROUP'),
+  type: roomTypeSchema.default('PUBLIC'),
   memberIds: z.array(z.string().uuid()).optional(),
   topics: z.array(z.string()).optional(),
+  passcode: z.string().min(4).max(32).optional(), // Only for PRIVATE rooms
 });
 
 export const updateRoomSchema = z.object({

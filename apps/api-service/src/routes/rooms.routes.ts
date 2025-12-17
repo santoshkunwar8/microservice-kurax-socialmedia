@@ -175,8 +175,8 @@ export const roomsRouter = s.router(roomsContract, {
 
   join: {
     middleware: [authMiddleware as any],
-    handler: async ({ params, req }) => {
-      const room = await roomService.joinRoom(req.userId!, params.id);
+    handler: async ({ params, body, req }) => {
+      const room = await roomService.joinRoom(req.userId!, params.id, body?.passcode);
       return {
         status: 200,
         body: {

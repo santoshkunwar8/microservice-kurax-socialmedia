@@ -104,9 +104,10 @@ export const apiClient = {
         success: boolean;
         data: { rooms: Room[] };
       }>("/rooms/discover"),
-    createRoom: (name: string, type: string = "GROUP", topics: string[] = []) =>
-      api.post("/rooms/create", { name, type, topics }),
-    joinRoom: (roomId: string) => api.post(`/rooms/${roomId}/join`),
+    createRoom: (payload: any) =>
+      api.post("/rooms/create", payload),
+    joinRoom: (roomId: string, passcode?: string) =>
+      api.post(`/rooms/${roomId}/join`, passcode ? { passcode } : {}),
     leaveRoom: (roomId: string) => api.post(`/rooms/${roomId}/leave`),
     getRoomById: (roomId: string) =>
       api.get(`/rooms/${roomId}`),

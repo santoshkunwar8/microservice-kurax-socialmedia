@@ -68,15 +68,17 @@ export default function RoomList({ rooms, selectedRoomId }: RoomListProps) {
               <p className={`text-xs truncate mt-0.5 flex items-center gap-1 ${selectedRoomId === room.id ? 'text-blue-600' : 'text-gray-500'}`}>
                 {joiningRoomId === room.id ? (
                   <span className="text-xs text-blue-500 animate-pulse">Joining...</span>
-                ) : room.type === 'CHANNEL' ? (
+                ) : room.type === 'PRIVATE' ? (
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <path d="M8 12a4 4 0 018 0" stroke="currentColor" strokeWidth="2" fill="none" />
                   </svg>
-                ) : room.type === 'GROUP' ? (
+                ) : room.type === 'PUBLIC' ? (
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <path d="M2 12h20" stroke="currentColor" strokeWidth="2" fill="none" />
                   </svg>
-                ) : room.type === 'DIRECT' ? 'Direct Message' : String(room.type).charAt(0) + String(room.type).slice(1).toLowerCase()}
+                ) : String(room.type).charAt(0) + String(room.type).slice(1).toLowerCase()}
               </p>
             </div>
           </button>

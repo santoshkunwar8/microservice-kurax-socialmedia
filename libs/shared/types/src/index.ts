@@ -30,9 +30,8 @@ export interface AuthUser {
 
 // ============= Room Types =============
 export enum RoomType {
-  DIRECT = 'DIRECT',
-  GROUP = 'GROUP',
-  CHANNEL = 'CHANNEL',
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
 }
 
 export interface Room {
@@ -45,6 +44,7 @@ export interface Room {
   createdById: string;
   createdAt: Date;
   updatedAt: Date;
+  passcode?: string | null; // Only for PRIVATE rooms, usually not sent to client
   _count?: {
     members: number;
     messages: number;

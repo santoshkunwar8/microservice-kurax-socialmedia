@@ -17,9 +17,9 @@ import {
 interface Room {
   id: string;
   name: string | null;
-  type: 'GROUP' | 'DIRECT' | 'PRIVATE' | 'CHANNEL';
+  type: 'PUBLIC' | 'PRIVATE';
   memberCount?: number;
-  topics?: string[];
+  // topics?: string[];
   _count?: {
     members: number;
     messages: number;
@@ -142,10 +142,10 @@ export default function Dashboard() {
     navigate('/login');
   };
 
-  const handleCreateRoom = async (name: string, type: 'GROUP' | 'PRIVATE', topics: string[] = []) => {
+  const handleCreateRoom = async (name: string, type: 'PUBLIC' | 'PRIVATE', passcode?: string) => {
     setIsCreating(true);
     try {
-      const response = await apiClient.rooms.createRoom(name, type, topics);
+      const response = await apiClient.rooms.createRoom({ name, type, passcode });
       if (response.status === 201 || response.status === 200) {
         // @ts-ignore
         const newRoom = response.data.data?.room || response.data.data;
@@ -192,29 +192,15 @@ export default function Dashboard() {
     ...discoverRooms.filter((r: Room) => !userRoomIds.has(r.id)),
   ];
 
-  // Compute topics from all rooms
-  const topicsWithCount = useMemo(() => {
-    const topicMap = new Map<string, number>();
-    allRooms.forEach((room: Room) => {
-      if (room.topics && room.topics.length > 0) {
-        room.topics.forEach(topic => {
-          topicMap.set(topic, (topicMap.get(topic) || 0) + 1);
-        });
-      }
-    });
-    return Array.from(topicMap.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10); // Show top 10 topics
-  }, [allRooms]);
+  // Topics removed from Room model. No topicsWithCount needed.
 
   // Filter rooms based on search and filter type
   const filteredRooms = allRooms.filter((room: Room) => {
     const matchesSearch = (room.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter =
       filterType === 'all' ||
-      (filterType === 'public' && room.type === 'GROUP') ||
-      (filterType === 'private' && room.type !== 'GROUP');
+      (filterType === 'public' && room.type === 'PUBLIC') ||
+      (filterType === 'private' && room.type === 'PRIVATE');
     return matchesSearch && matchesFilter;
   });
 
@@ -236,7 +222,6 @@ export default function Dashboard() {
         userRoomsCount={rooms.length}
         isMobileOpen={mobileSidebarOpen}
         onMobileClose={() => setMobileSidebarOpen(false)}
-        topics={topicsWithCount}
       />
 
       <main

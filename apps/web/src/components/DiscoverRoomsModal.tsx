@@ -12,6 +12,9 @@ export default function DiscoverRoomsModal({ isOpen, onClose }: DiscoverRoomsMod
   const [rooms, setDiscoverableRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [passcodePrompt, setPasscodePrompt] = useState<{ room: Room; open: boolean }>({ room: null as any, open: false });
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
   const { rooms: myRooms, setRooms } = useChatStore();
 
   useEffect(() => {
@@ -36,17 +39,28 @@ export default function DiscoverRoomsModal({ isOpen, onClose }: DiscoverRoomsMod
   };
 
   const handleJoin = async (room: Room) => {
+    if (room.type === 'PRIVATE') {
+      setPasscodePrompt({ room, open: true });
+      setPasscodeInput('');
+      setPasscodeError('');
+      return;
+    }
+    await doJoin(room);
+  };
+
+  const doJoin = async (room: Room, passcode?: string) => {
     setJoiningId(room.id);
     try {
-      const response = await apiClient.rooms.joinRoom(room.id);
+      const response = await apiClient.rooms.joinRoom(room.id, passcode);
       if (response.status === 200) {
-        // Add to my rooms
         setRooms([...myRooms, room]);
-        // Remove from discoverable
         setDiscoverableRooms(rooms.filter(r => r.id !== room.id));
         onClose();
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (room.type === 'PRIVATE') {
+        setPasscodeError('Invalid passcode');
+      }
       console.error('Failed to join room:', error);
     } finally {
       setJoiningId(null);
@@ -98,7 +112,7 @@ export default function DiscoverRoomsModal({ isOpen, onClose }: DiscoverRoomsMod
                 >
                   <div className="flex items-center space-x-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm
-                      ${room.type === RoomType.CHANNEL ? 'bg-gradient-to-br from-purple-500 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-cyan-600'}`}
+                      ${room.type === RoomType.PRIVATE ? 'bg-gradient-to-br from-purple-500 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-cyan-600'}`}
                     >
                       {room.name?.charAt(0).toUpperCase() || '#'}
                     </div>
@@ -108,7 +122,7 @@ export default function DiscoverRoomsModal({ isOpen, onClose }: DiscoverRoomsMod
                       </h3>
                       <div className="flex items-center space-x-2 mt-0.5">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider
-                          ${room.type === RoomType.CHANNEL ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}
+                          ${room.type === RoomType.PRIVATE ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}
                         >
                           {room.type}
                         </span>
@@ -127,8 +141,41 @@ export default function DiscoverRoomsModal({ isOpen, onClose }: DiscoverRoomsMod
                         <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         <span>Joining...</span>
                       </span>
-                    ) : 'Join'}
+                    ) : room.type === 'PRIVATE' ? 'Join (Passcode)' : 'Join'}
                   </button>
+                      {/* Passcode Modal */}
+                      {passcodePrompt.open && (
+                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-xs">
+                            <h3 className="text-lg font-bold mb-2">Enter Passcode</h3>
+                            <p className="text-sm text-gray-500 mb-4">This room requires a passcode to join.</p>
+                            <input
+                              type="password"
+                              className="w-full px-3 py-2 border border-gray-200 rounded mb-2"
+                              placeholder="Passcode"
+                              value={passcodeInput}
+                              onChange={e => setPasscodeInput(e.target.value)}
+                              autoFocus
+                            />
+                            {passcodeError && <div className="text-red-500 text-xs mb-2">{passcodeError}</div>}
+                            <div className="flex justify-end gap-2 mt-2">
+                              <button
+                                className="px-3 py-1.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                onClick={() => setPasscodePrompt({ room: null as any, open: false })}
+                              >Cancel</button>
+                              <button
+                                className="px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700"
+                                onClick={async () => {
+                                  setPasscodeError('');
+                                  await doJoin(passcodePrompt.room, passcodeInput);
+                                  setPasscodePrompt({ room: null as any, open: false });
+                                }}
+                                disabled={!passcodeInput || joiningId === passcodePrompt.room?.id}
+                              >Join</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                 </div>
               ))}
             </div>

@@ -26,6 +26,7 @@ const roomSchema = z.object({
   createdById: z.string().uuid(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  passcode: z.string().nullable().optional(), // Only present for PRIVATE rooms, never sent to client except maybe for owner
 });
 
 // Room with members schema
@@ -299,7 +300,7 @@ export const roomsContract = c.router({
     method: 'POST',
     path: '/rooms/:id/join',
     pathParams: idParamSchema,
-    body: z.object({}),
+    body: z.object({ passcode: z.string().optional() }),
     responses: {
       200: z.object({
         success: z.literal(true),

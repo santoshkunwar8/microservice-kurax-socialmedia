@@ -61,7 +61,8 @@ model Room {
   id          String   @id @default(uuid())
   name        String?
   description String?
-  type        RoomType @default(GROUP)
+  type        RoomType @default(PUBLIC)
+  passcode    String?  @map("passcode")
   avatarUrl   String?  @map("avatar_url")
   topics      String[] @default([])
   createdById String   @map("created_by_id")
@@ -81,9 +82,8 @@ model Room {
 }
 
 enum RoomType {
-  DIRECT
-  GROUP
-  CHANNEL
+  PUBLIC
+  PRIVATE
 }
 
 // ============= Room Member Model =============

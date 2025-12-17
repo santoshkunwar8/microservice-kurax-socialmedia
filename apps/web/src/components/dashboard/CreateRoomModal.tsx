@@ -43,7 +43,7 @@ const AVAILABLE_TOPICS = [
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, type: 'GROUP' | 'PRIVATE', topics: string[]) => Promise<void>;
+  onCreate: (name: string, type: 'PUBLIC' | 'PRIVATE', passcode?: string) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -54,32 +54,19 @@ export default function CreateRoomModal({
   isLoading,
 }: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState('');
-  const [roomType, setRoomType] = useState<'public' | 'private'>('public');
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [topicSearch, setTopicSearch] = useState('');
+  const [roomType, setRoomType] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC');
+  const [passcode, setPasscode] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!roomName.trim()) return;
-    await onCreate(roomName, roomType === 'public' ? 'GROUP' : 'PRIVATE', selectedTopics);
+    await onCreate(roomName, roomType, roomType === 'PRIVATE' ? passcode : undefined);
     setRoomName('');
-    setRoomType('public');
-    setSelectedTopics([]);
-    setTopicSearch('');
+    setRoomType('PUBLIC');
+    setPasscode('');
   };
-
-  const toggleTopic = (topic: string) => {
-    setSelectedTopics(prev => 
-      prev.includes(topic) 
-        ? prev.filter(t => t !== topic)
-        : [...prev, topic]
-    );
-  };
-
-  const filteredTopics = AVAILABLE_TOPICS.filter(topic =>
-    topic.toLowerCase().includes(topicSearch.toLowerCase())
-  );
 
   return (
     <div
@@ -114,7 +101,6 @@ export default function CreateRoomModal({
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition"
             />
           </div>
-
           <div>
             <label className="block text-sm font-semibold mb-2 text-gray-300">
               Privacy
@@ -122,9 +108,9 @@ export default function CreateRoomModal({
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => setRoomType('public')}
+                onClick={() => setRoomType('PUBLIC')}
                 className={`flex-1 px-4 py-3 rounded-xl border transition-all ${
-                  roomType === 'public'
+                  roomType === 'PUBLIC'
                     ? 'bg-green-500/20 border-green-500/50 text-green-400'
                     : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                 }`}
@@ -134,9 +120,9 @@ export default function CreateRoomModal({
               </button>
               <button
                 type="button"
-                onClick={() => setRoomType('private')}
+                onClick={() => setRoomType('PRIVATE')}
                 className={`flex-1 px-4 py-3 rounded-xl border transition-all ${
-                  roomType === 'private'
+                  roomType === 'PRIVATE'
                     ? 'bg-purple-500/20 border-purple-500/50 text-purple-400'
                     : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                 }`}
@@ -146,65 +132,23 @@ export default function CreateRoomModal({
               </button>
             </div>
           </div>
-
-          {/* Topics Selection */}
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-300">
-              Topics (optional)
-            </label>
-            
-            {/* Selected Topics */}
-            {selectedTopics.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {selectedTopics.map(topic => (
-                  <span
-                    key={topic}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-purple-500/20 border border-purple-500/50 text-purple-400 rounded-full text-sm"
-                  >
-                    {topic}
-                    <button
-                      onClick={() => toggleTopic(topic)}
-                      className="hover:text-white transition"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Search Topics */}
-            <input
-              type="text"
-              value={topicSearch}
-              onChange={(e) => setTopicSearch(e.target.value)}
-              placeholder="Search topics..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 mb-3 focus:outline-none focus:border-purple-500/50 transition text-sm"
-            />
-
-            {/* Topics Grid */}
-            <div className="max-h-40 overflow-y-auto rounded-xl border border-white/10 p-3 bg-white/5">
-              <div className="flex flex-wrap gap-2">
-                {filteredTopics.map(topic => (
-                  <button
-                    key={topic}
-                    type="button"
-                    onClick={() => toggleTopic(topic)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      selectedTopics.includes(topic)
-                        ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white'
-                        : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                    }`}
-                  >
-                    {topic}
-                  </button>
-                ))}
-              </div>
+          {roomType === 'PRIVATE' && (
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-300">
+                Passcode
+              </label>
+              <input
+                type="password"
+                value={passcode}
+                onChange={e => setPasscode(e.target.value)}
+                placeholder="Enter passcode for private room"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition"
+              />
             </div>
-          </div>
+          )}
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={isLoading || !roomName.trim()}
             className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 rounded-xl font-semibold transition-all transform hover:scale-105 mt-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >

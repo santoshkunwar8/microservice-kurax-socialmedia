@@ -13,9 +13,8 @@ import {
 interface Room {
   id: string;
   name: string | null;
-  type: 'GROUP' | 'DIRECT' | 'PRIVATE' | 'CHANNEL';
+  type: 'PUBLIC' | 'PRIVATE';
   memberCount?: number;
-  topics?: string[];
   _count?: {
     members: number;
     messages: number;
@@ -47,10 +46,9 @@ function getGradient(name: string | null): string {
 
 export default function RoomCard({ room, onJoin, onSelect, isJoined }: RoomCardProps) {
   const gradient = getGradient(room.name);
-  const isPublic = room.type === 'GROUP';
+  const isPublic = room.type === 'PUBLIC';
   const memberCount = room._count?.members || room.memberCount || 0;
   const messageCount = room._count?.messages || 0;
-  const topics = room.topics || [];
 
   return (
     <div
@@ -115,25 +113,7 @@ export default function RoomCard({ room, onJoin, onSelect, isJoined }: RoomCardP
           </div>
         </div>
 
-        {/* Topics */}
-        {topics.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {topics.slice(0, 3).map((topic, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400 flex items-center"
-              >
-                <Tag className="w-2.5 h-2.5 mr-1" />
-                {topic}
-              </span>
-            ))}
-            {topics.length > 3 && (
-              <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-500">
-                +{topics.length - 3}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Topics removed: no longer in Room model */}
 
         {/* Action */}
         <div className="flex items-center justify-between mt-auto">
