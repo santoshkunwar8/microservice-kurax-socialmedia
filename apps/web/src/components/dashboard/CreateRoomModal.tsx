@@ -109,11 +109,10 @@ export default function CreateRoomModal({
               <button
                 type="button"
                 onClick={() => setRoomType('PUBLIC')}
-                className={`flex-1 px-4 py-3 rounded-xl border transition-all ${
-                  roomType === 'PUBLIC'
-                    ? 'bg-green-500/20 border-green-500/50 text-green-400'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                }`}
+                className={`flex-1 px-4 py-3 rounded-xl border transition-all ${roomType === 'PUBLIC'
+                  ? 'bg-green-500/20 border-green-500/50 text-green-400'
+                  : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                  }`}
               >
                 <Globe className="w-5 h-5 mx-auto mb-1" />
                 <div className="text-sm font-semibold">Public</div>
@@ -121,11 +120,10 @@ export default function CreateRoomModal({
               <button
                 type="button"
                 onClick={() => setRoomType('PRIVATE')}
-                className={`flex-1 px-4 py-3 rounded-xl border transition-all ${
-                  roomType === 'PRIVATE'
-                    ? 'bg-purple-500/20 border-purple-500/50 text-purple-400'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                }`}
+                className={`flex-1 px-4 py-3 rounded-xl border transition-all ${roomType === 'PRIVATE'
+                  ? 'bg-purple-500/20 border-purple-500/50 text-purple-400'
+                  : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                  }`}
               >
                 <Lock className="w-5 h-5 mx-auto mb-1" />
                 <div className="text-sm font-semibold">Private</div>

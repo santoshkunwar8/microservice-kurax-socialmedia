@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import { useAuthStore } from '../store';
 import { AuthResponse } from '@kuraxx/types';
-import { 
-  MessageCircle, Eye, EyeOff, Mail, Lock, User, 
+import {
+  MessageCircle, Eye, EyeOff, Mail, Lock, User,
   ChevronRight, Sparkles, Shield, Zap, AlertCircle
 } from 'lucide-react';
 
@@ -102,14 +102,11 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="relative w-full max-w-5xl grid lg:grid-cols-[1.2fr,1fr] gap-12 items-center z-10">
-        
+
         {/* Left Side - Branding */}
         <div className="hidden lg:block space-y-8">
           <div className="flex items-center space-x-3 mb-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center">
-              <MessageCircle className="w-9 h-9" />
-            </div>
-            <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">kuraX</span>
+            <img src="/transparent-logo.svg" alt="kuraX" className="h-20 w-auto" />
           </div>
 
           <div>
@@ -162,11 +159,8 @@ export default function LoginPage() {
         <div className="relative max-w-md mx-auto lg:mx-0 w-full">
           <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
             {/* Logo for Mobile */}
-            <div className="lg:hidden flex items-center justify-center space-x-2 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-7 h-7" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">kuraX</span>
+            <div className="lg:hidden flex items-center justify-center mb-6">
+              <img src="/transparent-logo.svg" alt="kuraX" className="h-12 w-auto" />
             </div>
 
             <div className="text-center mb-6">
@@ -174,8 +168,8 @@ export default function LoginPage() {
                 {isLogin ? 'Welcome back!' : 'Create your account'}
               </h2>
               <p className="text-gray-400 text-sm">
-                {isLogin 
-                  ? 'Enter your credentials to access your account' 
+                {isLogin
+                  ? 'Enter your credentials to access your account'
                   : 'Join kuraX and start connecting with communities'}
               </p>
               <button

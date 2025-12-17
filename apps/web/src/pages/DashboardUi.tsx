@@ -284,17 +284,10 @@ export default function KuraXDashboard() {
             <aside className={`fixed left-0 top-0 h-screen bg-black/40 backdrop-blur-xl border-r border-white/10 p-6 z-40 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-72'}`}>
                 <div className="flex items-center space-x-3 mb-8">
                     {!sidebarCollapsed && (
-                        <>
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                                <MessageCircle className="w-7 h-7" />
-                            </div>
-                            <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">kuraX</span>
-                        </>
+                        <img src="/transparent-logo.svg" alt="kuraX" className="h-10 w-auto" />
                     )}
                     {sidebarCollapsed && (
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto">
-                            <MessageCircle className="w-7 h-7" />
-                        </div>
+                        <img src="/transparent-logo.svg" alt="kuraX" className="h-10 w-auto mx-auto" />
                     )}
                 </div>
 
