@@ -106,7 +106,7 @@ export default function LoginPage() {
         {/* Left Side - Branding */}
         <div className="hidden lg:block space-y-8">
           <div className="flex items-center space-x-3 mb-12">
-            <img src="/transparent-logo.svg" alt="kuraX" className="h-20 w-auto" />
+            <img src="/transparent-logo.png" alt="kuraX" className="h-20 w-auto" />
           </div>
 
           <div>
@@ -160,7 +160,7 @@ export default function LoginPage() {
           <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
             {/* Logo for Mobile */}
             <div className="lg:hidden flex items-center justify-center mb-6">
-              <img src="/transparent-logo.svg" alt="kuraX" className="h-12 w-auto" />
+              <img src="/transparent-logo.png" alt="kuraX" className="h-12 w-auto" />
             </div>
 
             <div className="text-center mb-6">

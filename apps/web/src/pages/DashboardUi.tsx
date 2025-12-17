@@ -284,10 +284,10 @@ export default function KuraXDashboard() {
             <aside className={`fixed left-0 top-0 h-screen bg-black/40 backdrop-blur-xl border-r border-white/10 p-6 z-40 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-72'}`}>
                 <div className="flex items-center space-x-3 mb-8">
                     {!sidebarCollapsed && (
-                        <img src="/transparent-logo.svg" alt="kuraX" className="h-10 w-auto" />
+                        <img src="/transparent-logo.png" alt="kuraX" className="h-10 w-auto" />
                     )}
                     {sidebarCollapsed && (
-                        <img src="/transparent-logo.svg" alt="kuraX" className="h-10 w-auto mx-auto" />
+                        <img src="/transparent-logo.png" alt="kuraX" className="h-10 w-auto mx-auto" />
                     )}
                 </div>
 

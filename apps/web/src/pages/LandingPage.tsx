@@ -59,7 +59,7 @@ export default function KuraXLanding() {
                 <div className="max-w-7xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                            <img src="/transparent-logo.svg" alt="kuraX" className="h-10 w-auto" />
+                            <img src="/transparent-logo.png" alt="kuraX" className="h-16 w-auto" />
                         </div>
 
                         {/* Desktop Menu */}
@@ -433,7 +433,7 @@ export default function KuraXLanding() {
                     <div className="grid md:grid-cols-4 gap-8 mb-8">
                         <div>
                             <div className="flex items-center space-x-2 mb-4">
-                                <img src="/transparent-logo.svg" alt="kuraX" className="h-8 w-auto" />
+                                <img src="/transparent-logo.png" alt="kuraX" className="h-8 w-auto" />
                             </div>
                             <p className="text-gray-400 text-sm">Building the future of social connection.</p>
                         </div>

@@ -78,10 +78,10 @@ export default function Sidebar({
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             {(!collapsed || isMobileOpen) && (
-              <img src="/transparent-logo.svg" alt="kuraX" className="h-10 w-auto" />
+              <img src="/transparent-logo.png" alt="kuraX" className="h-10 w-auto" />
             )}
             {collapsed && !isMobileOpen && (
-              <img src="/transparent-logo.svg" alt="kuraX" className="h-10 w-auto mx-auto" />
+              <img src="/transparent-logo.png" alt="kuraX" className="h-10 w-auto mx-auto" />
             )}
           </div>
 
