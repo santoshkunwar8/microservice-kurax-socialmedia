@@ -239,7 +239,7 @@ export async function deletePost(userId: string, postId: string): Promise<void> 
   }
 
   if (post.authorId !== userId) {
-    throw new RoomAccessDeniedError('You can only delete your own posts');
+    throw new RoomAccessDeniedError();
   }
 
   await prisma.post.delete({

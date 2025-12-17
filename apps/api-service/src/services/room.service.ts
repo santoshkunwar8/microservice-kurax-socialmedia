@@ -320,7 +320,7 @@ export async function getRoomById(
   }
 
   // Check if user is a member
-  const isMember = room.members.some((m) => m.userId === userId);
+  const isMember = room.members.some((m: any) => m.userId === userId);
   if (!isMember) {
     throw new RoomAccessDeniedError();
   }

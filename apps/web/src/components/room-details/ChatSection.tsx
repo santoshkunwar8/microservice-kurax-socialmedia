@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import AudioDuration from './AudioDuration';
+import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import { Send, Paperclip, Smile, Image, MoreVertical, Mic, X, Loader2, Play, Pause, StopCircle, FileText, Download } from 'lucide-react';
+import { VoiceRecordingUI } from './VoiceRecordingUI';
 import { useChatStore, useAuthStore } from '../../store';
 import { apiClient } from '../../services/api';
 import { wsManager } from '../../hooks/useWebSocket';
@@ -409,27 +411,8 @@ export default function ChatSection({ roomId }: ChatSectionProps) {
                             );
                         case 'audio':
                             return (
-                                <div key={index} className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl shadow-sm border border-blue-100">
-                                    <button
-                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 focus:outline-none"
-                                        onClick={() => {
-                                            const audio = document.getElementById(`audio-player-${index}`) as HTMLAudioElement;
-                                            if (audio) {
-                                                if (audio.paused) audio.play(); else audio.pause();
-                                            }
-                                        }}
-                                        title="Play/Pause"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-6.518-3.759A1 1 0 007 8.118v7.764a1 1 0 001.234.97l6.518-1.757A1 1 0 0016 14.882V9.118a1 1 0 00-1.248-.95z" />
-                                        </svg>
-                                    </button>
-                                    <audio id={`audio-player-${index}`} controls className="h-8 max-w-[180px] flex-1" style={{ display: 'inline-block' }}>
-                                        <source src={part.content} />
-                                    </audio>
-                                    <span className="text-xs text-gray-500 font-mono min-w-[40px] text-right">
-                                        <AudioDuration src={part.content} />
-                                    </span>
+                                <div key={index} className="max-w-md">
+                                    <VoiceMessagePlayer src={part.content} />
                                 </div>
                             );
                         case 'file':
@@ -673,25 +656,12 @@ export default function ChatSection({ roomId }: ChatSectionProps) {
 
                 {/* Recording in progress */}
                 {isRecording && (
-                    <div className="flex items-center gap-3 mb-3 p-3 bg-red-500/10 rounded-xl border border-red-500/30">
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-sm text-red-400">Recording...</span>
-                        <span className="text-sm text-gray-400">{formatRecordingTime(recordingTime)}</span>
-                        <div className="flex-1" />
-                        <button
-                            type="button"
-                            onClick={stopRecording}
-                            className="p-2 bg-red-500 rounded-full hover:bg-red-600 transition"
-                        >
-                            <StopCircle className="w-5 h-5" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={cancelRecording}
-                            className="p-2 hover:bg-white/10 rounded-full transition text-gray-400"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
+                    <div className="mb-3">
+                        <VoiceRecordingUI
+                            recordingTime={recordingTime}
+                            onStop={stopRecording}
+                            onCancel={cancelRecording}
+                        />
                     </div>
                 )}
 

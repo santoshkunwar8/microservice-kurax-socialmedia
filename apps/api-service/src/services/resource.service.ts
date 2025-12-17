@@ -119,7 +119,7 @@ export async function deleteResource(userId: string, resourceId: string): Promis
   }
 
   if (resource.authorId !== userId) {
-    throw new RoomAccessDeniedError('You can only delete your own resources');
+    throw new RoomAccessDeniedError();
   }
 
   await prisma.resource.delete({

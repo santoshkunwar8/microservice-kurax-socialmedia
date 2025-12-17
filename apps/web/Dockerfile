@@ -10,6 +10,9 @@ COPY nx.json tsconfig.base.json ./
 
 RUN npm ci
 
+# Build shared libs needed by web
+RUN npx nx build shared-types
+
 RUN npx nx build @kuraxx/web
 
 # Runtime stage - Nginx
@@ -18,8 +21,8 @@ FROM nginx:alpine
 # Copy nginx config
 COPY apps/web/nginx.conf /etc/nginx/nginx.conf
 
-# Copy built app
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+# Copy built app (from Nx build output)
+COPY --from=builder /app/dist/apps/web /usr/share/nginx/html
 
 EXPOSE 80
 

@@ -118,7 +118,7 @@ export const roomsRouter = s.router(roomsContract, {
         body: {
           success: true as const,
           data: {
-            members: members.map((m) => ({
+            members: members.map((m: any) => ({
               ...m,
               user: m.user,
             })),

@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN npm ci
 RUN npx nx build ws-service
 
 # Runtime stage
-FROM node:20-alpine
+FROM node:20
 
 WORKDIR /app
 
@@ -27,7 +27,14 @@ COPY package.json package-lock.json ./
 RUN npm ci --only=production
 
 # Copy built application
-COPY --from=builder /app/apps/ws-service/dist ./dist
+COPY --from=builder /app/dist ./dist
+
+
+# Copy built local libs for workspace packages
+RUN mkdir -p node_modules/@kuraxx/constants && \
+  cp -r /app/dist/apps/ws-service/libs/shared/constants/src/* node_modules/@kuraxx/constants/ && \
+  mkdir -p node_modules/@kuraxx/types && \
+  cp -r /app/dist/apps/ws-service/libs/shared/types/src/* node_modules/@kuraxx/types/
 
 # Expose port
 EXPOSE 3002
@@ -37,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:3002/health || exit 1
 
 # Start application
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/apps/ws-service/apps/ws-service/src/index.js"]
