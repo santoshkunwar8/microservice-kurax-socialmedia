@@ -10,7 +10,7 @@ interface MessageListProps {
 function SystemMessage({ message }: { message: MessageWithSender }) {
   const isJoinMessage = message.content.includes('joined the room');
   const isLeaveMessage = message.content.includes('left the room');
-  
+
   return (
     <div className="flex justify-center py-2 animate-fade-in-up">
       <div className="flex items-center gap-2 px-4 py-1.5 bg-gray-100/80 rounded-full">
@@ -30,12 +30,12 @@ function SystemMessage({ message }: { message: MessageWithSender }) {
             </svg>
           )}
         </span>
-        
+
         {/* Message text */}
         <span className="text-xs font-medium text-gray-500">
           {message.content}
         </span>
-        
+
         {/* Timestamp */}
         <span className="text-[10px] text-gray-400 ml-1">
           {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -51,9 +51,11 @@ export default function MessageList({
 }: MessageListProps) {
   const typingUsers = useChatStore((state) => state.typingUsers);
 
+  // Ensure messages are rendered oldest first (latest at bottom)
+  const orderedMessages = [...messages].reverse();
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50/50 custom-scrollbar">
-      {messages.length === 0 ? (
+      {orderedMessages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-gray-400">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
             <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,17 +66,17 @@ export default function MessageList({
           <p className="text-sm mt-1 text-gray-400">Start the conversation!</p>
         </div>
       ) : (
-        messages.map((message, index) => {
+        orderedMessages.map((message, index) => {
           // Handle system messages (join/leave)
           if (message.type === 'SYSTEM') {
             return <SystemMessage key={message.id} message={message} />;
           }
 
           const isOwn = message.senderId === currentUserId;
-          const prevMessage = messages[index - 1];
+          const prevMessage = orderedMessages[index - 1];
           const showAvatar = !isOwn && (index === 0 || prevMessage?.senderId !== message.senderId || prevMessage?.type === 'SYSTEM');
           const showName = !isOwn && (index === 0 || prevMessage?.senderId !== message.senderId || prevMessage?.type === 'SYSTEM');
-          
+
           return (
             <div
               key={message.id}
@@ -97,7 +99,7 @@ export default function MessageList({
                     ) : <div className="w-8" />}
                   </div>
                 )}
-                
+
                 <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                   {showName && (
                     <p className="text-xs text-gray-500 font-medium mb-1 ml-1">
@@ -105,11 +107,10 @@ export default function MessageList({
                     </p>
                   )}
                   <div
-                    className={`px-4 py-2.5 rounded-2xl shadow-sm text-[15px] leading-relaxed break-words transition-all duration-200 hover:shadow-md ${
-                      isOwn
-                        ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none'
-                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
-                    }`}
+                    className={`px-4 py-2.5 rounded-2xl shadow-sm text-[15px] leading-relaxed break-words transition-all duration-200 hover:shadow-md ${isOwn
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none'
+                      : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                      }`}
                   >
                     <p className="break-words">{message.content}</p>
                   </div>

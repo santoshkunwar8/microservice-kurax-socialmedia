@@ -25,6 +25,29 @@ function AppContent() {
 
   useWebSocket(accessToken);
 
+  // Ensure presence is updated when user closes tab/browser
+  useEffect(() => {
+    const handleUnload = () => {
+      try {
+        // Optionally notify backend of offline presence
+        if (window.wsManager && typeof window.wsManager.send === 'function') {
+          // If wsManager is globally available, send presence:offline
+          window.wsManager.send('presence:offline', {});
+        }
+      } catch (e) {}
+      // Always disconnect WebSocket
+      if (window.wsManager && typeof window.wsManager.disconnect === 'function') {
+        window.wsManager.disconnect();
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('unload', handleUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, []);
+
   useEffect(() => {
     const initAuth = async () => {
       const token = useAuthStore.getState().accessToken;
